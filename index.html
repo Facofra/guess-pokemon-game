@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>¿Quién es ese Pokémon?</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="scanlines"></div>
+    <div class="bg-pokeballs"></div>
+
+    <div class="container">
+
+        <!-- GLOSARIO -->
+        <button id="glossaryBtn" class="glossary-btn">📖 Glosario</button>
+        <div id="glossaryModal" class="glossary-modal">
+            <div class="glossary-content">
+                <div class="glossary-header">
+                    <h3>📖 Categorías de pistas</h3>
+                    <button class="glossary-close">×</button>
+                </div>
+                <div class="glossary-body" id="glossaryBody"></div>
+            </div>
+        </div>
+
+        <!-- HEADER -->
+        <header class="game-header">
+            <div class="header-pokeball">⬤</div>
+            <h1 class="game-title">¿Quién es ese<br><span class="title-accent">Pokémon?</span></h1>
+            <div class="header-pokeball">⬤</div>
+        </header>
+
+        <!-- VICTORIA -->
+        <div id="victoryBanner" class="victory-banner">
+            <div class="victory-inner">
+                <div class="victory-star">★</div>
+                <div class="victory-text">¡ATRAPADO!</div>
+                <div class="victory-sub">¡Lo adivinaste!</div>
+            </div>
+        </div>
+
+        <!-- DESCRIPCIÓN -->
+        <div class="game-description">
+            <p>🎯 <strong>Objetivo:</strong> Adivina el Pokémon secreto de las generaciones 1, 2 y 3</p>
+            <p>🔍 <strong>Pistas:</strong> Cada intento revela categorías que comparten el Pokémon ingresado y el secreto</p>
+        </div>
+
+        <div id="message" class="message message-hidden">&nbsp;</div>
+
+        <!-- SELECCIÓN DE DIFICULTAD -->
+        <div id="difficultySelection" class="difficulty-selection">
+            <h2>Selecciona la dificultad</h2>
+            <div class="difficulty-options">
+                <div class="difficulty-option" id="opt-easy">
+                    <input type="radio" id="easyMode" name="difficulty" value="easy" checked>
+                    <label for="easyMode">
+                        <span class="diff-icon">🌿</span>
+                        <span class="diff-name">Fácil</span>
+                        <span class="diff-desc">Todas las categorías compartidas · Sin límite de intentos</span>
+                    </label>
+                </div>
+                <div class="difficulty-option" id="opt-hard">
+                    <input type="radio" id="hardMode" name="difficulty" value="hard">
+                    <label for="hardMode">
+                        <span class="diff-icon">🔥</span>
+                        <span class="diff-name">Difícil</span>
+                        <span class="diff-desc">Solo la pista más útil · Máx. 10 intentos</span>
+                    </label>
+                </div>
+            </div>
+            <button id="startGameBtn" class="start-game-btn">¡Iniciar!</button>
+        </div>
+
+        <!-- CONTROLES DEL JUEGO -->
+        <div id="gameControls" class="game-controls" style="display:none;">
+            <div class="input-row">
+                <div class="autocomplete-wrapper">
+                    <input type="text" id="pokemonInput" placeholder="Nombre del Pokémon..." autocomplete="off" spellcheck="false">
+                    <div id="autocompleteList" class="autocomplete-list"></div>
+                </div>
+                <button class="btn btn-guess" id="guessBtn">Adivinar</button>
+            </div>
+            <div class="action-row">
+                <button class="btn btn-stop" id="stopBtn">⬅ Salir</button>
+                <div class="counter-badges">
+                    <span id="attemptCounter" class="badge badge-attempts">Intentos: 0</span>
+                    <span id="difficultyInfo" class="badge badge-diff"></span>
+                    <span id="gameStatus" class="badge badge-status"></span>
+                </div>
+                <button class="btn btn-restart" id="restartBtn">↺ Reiniciar</button>
+            </div>
+        </div>
+
+        <!-- TABLA -->
+        <div class="matrix-container" id="matrixContainer" style="display:none;">
+            <div class="empty-state">
+                <span class="pokeball-spin">◉</span>
+                <p>Ingresa tu primer Pokémon para revelar las pistas</p>
+            </div>
+        </div>
+
+        <!-- LOADING -->
+        <div id="loadingScreen" class="loading-screen" style="display:none;">
+            <div class="loading-pokeball">◉</div>
+            <p>Cargando Pokédex...</p>
+        </div>
+
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
