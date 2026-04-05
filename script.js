@@ -488,36 +488,25 @@ class PokemonGame {
 
     addNewCategories(guessData) {
         const shared = this.getSharedCategories(guessData);
-        // All not-yet-revealed shared categories
         const newShared = shared.filter(c => !this.revealedCategories.includes(c));
+        const secretCats = this.secretPokemon.categories;
+
+        const candidateCount = (cat) =>
+            categoryIndex[cat]?.[secretCats[cat]]?.length ?? Infinity;
 
         if (this.difficulty === 'easy') {
-            for (const c of newShared) {
-                this.revealedCategories.push(c);
-            }
+            for (const c of newShared) this.revealedCategories.push(c);
         } else {
-            // Hard mode: only add the most useful new shared category
             if (newShared.length > 0) {
-                // "Most useful" = the one with fewest possible matches (most discriminating)
-                // We don't have a pre-built list, so we use a heuristic priority:
-                const priority = [
-                    'Legendario/Mítico','Tipo 2','Grupo de huevo 2','Etapa evolutiva',
-                    'Tipo 1','Hábitat','Forma del cuerpo','Color',
-                    'Generación','Grupo de huevo 1'
-                ];
-                let bestCat = newShared[0];
-                let bestPri = priority.indexOf(newShared[0]);
-                if (bestPri === -1) bestPri = 999;
-                for (const c of newShared) {
-                    const p = priority.indexOf(c);
-                    const eff = p === -1 ? 999 : p;
-                    if (eff < bestPri) { bestPri = eff; bestCat = c; }
-                }
+                const bestCat = newShared.reduce((best, c) =>
+                    candidateCount(c) < candidateCount(best) ? c : best
+                );
                 this.revealedCategories.push(bestCat);
-            } else if (this.revealedCategories.length === 0 && shared.length === 0) {
-                // No shared at all, reveal the first unshared as hint anyway
             }
         }
+
+        // Reordenar todas las categorías reveladas: más útil (menos candidatos) arriba
+        this.revealedCategories.sort((a, b) => candidateCount(a) - candidateCount(b));
     }
 
     // ── RENDER TABLE ────────────────────────────
