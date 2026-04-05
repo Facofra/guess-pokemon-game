@@ -237,6 +237,7 @@ class PokemonGame {
         const input = document.getElementById('pokemonInput');
         input.addEventListener('input',   () => this.onInput());
         input.addEventListener('focus',   () => this.onInput());
+        input.addEventListener('click',   () => this.onInput());
         input.addEventListener('keydown', e  => this.onKeyDown(e));
 
         document.addEventListener('click', e => {
@@ -290,6 +291,7 @@ class PokemonGame {
         const items = list.querySelectorAll('.autocomplete-item');
         if (e.key === 'ArrowDown') {
             e.preventDefault();
+            if (!list.classList.contains('show')) { this.onInput(); return; }
             this.selectedAutoIdx = Math.min(this.selectedAutoIdx + 1, items.length - 1);
             this.highlightAuto(items);
         } else if (e.key === 'ArrowUp') {
