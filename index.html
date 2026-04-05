@@ -77,13 +77,6 @@
 
         <!-- CONTROLES DEL JUEGO -->
         <div id="gameControls" class="game-controls" style="display:none;">
-            <div class="input-row">
-                <div class="autocomplete-wrapper">
-                    <input type="text" id="pokemonInput" placeholder="Nombre del Pokémon..." autocomplete="off" spellcheck="false">
-                    <div id="autocompleteList" class="autocomplete-list"></div>
-                </div>
-                <button class="btn btn-guess" id="guessBtn">Adivinar</button>
-            </div>
             <div class="action-row">
                 <button class="btn btn-stop" id="stopBtn">⬅ Salir</button>
                 <div class="counter-badges">
@@ -92,6 +85,13 @@
                     <span id="gameStatus" class="badge badge-status"></span>
                 </div>
                 <button class="btn btn-restart" id="restartBtn">↺ Reiniciar</button>
+            </div>
+            <div class="input-row">
+                <div class="autocomplete-wrapper">
+                    <input type="text" id="pokemonInput" placeholder="Nombre del Pokémon..." autocomplete="off" spellcheck="false">
+                    <div id="autocompleteList" class="autocomplete-list"></div>
+                </div>
+                <button class="btn btn-guess" id="guessBtn">Adivinar</button>
             </div>
         </div>
 

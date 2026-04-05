@@ -596,7 +596,7 @@ class PokemonGame {
                 } else {
                     const match = (val === secretVal);
                     cellContent = match
-                        ? this.renderValue(val, cat, true)
+                        ? this.renderValue(val, cat)
                         : `<span class="match-no" title="${val}">·</span>`;
                 }
                 html += `<td class="${extraClass}">${cellContent}</td>`;
@@ -616,26 +616,25 @@ class PokemonGame {
         this.initTooltips();
     }
 
-    renderValue(val, cat, isMatch = false) {
-        const matchClass = isMatch ? ' match-yes' : '';
+    renderValue(val, cat) {
         if (cat === 'Tipo 1' || cat === 'Tipo 2') {
             const typeKey = Object.entries(TYPE_ES).find(([,v]) => v === val)?.[0];
-            if (typeKey) return `<span class="type-badge type-${typeKey}${matchClass}">${val}</span>`;
+            if (typeKey) return `<span class="type-badge type-${typeKey}">${val}</span>`;
         }
         if (cat === 'Generación') {
-            return `<span class="gen-badge${matchClass}">${val}</span>`;
+            return `<span class="gen-badge">${val}</span>`;
         }
         if (cat === 'Color') {
             const colorKey = Object.entries(COLOR_ES).find(([,v]) => v === val)?.[0];
-            if (colorKey) return `<span class="value-label${matchClass}" style="color:var(--color-${colorKey})">${val}</span>`;
+            if (colorKey) return `<span class="value-label" style="color:var(--color-${colorKey})">${val}</span>`;
         }
         if (['Forma alternativa', 'Starter', 'Bebé', 'Fósil'].includes(cat)) {
             const yes = val === 'Sí';
             return yes
-                ? `<span class="value-label${matchClass} bool-yes">✔</span>`
-                : `<span class="value-label${matchClass} bool-no">✘</span>`;
+                ? `<span class="value-label bool-yes">✔</span>`
+                : `<span class="value-label bool-no">✘</span>`;
         }
-        return `<span class="value-label${matchClass}">${val}</span>`;
+        return `<span class="value-label">${val}</span>`;
     }
 
     // ── TOOLTIPS ────────────────────────────────
