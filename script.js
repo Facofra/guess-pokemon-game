@@ -550,11 +550,21 @@ class PokemonGame {
         let html = `<table class="matrix-table"><thead><tr>
             <th>Categoría</th>`;
 
+        // Blur: starts at MAX_BLUR, reaches 0 at the last allowed attempt
+        const MAX_BLUR = 12;
+        const blurSteps = this.difficulty === 'hard' ? this.maxAttempts : 8;
+        const blurPx = showSecret
+            ? 0
+            : Math.max(0, MAX_BLUR - (this.attemptCount / blurSteps) * MAX_BLUR);
+
         for (const col of columns) {
             const isHidden = col.isSecret && !showSecret;
             const extraClass = col.isSecret ? `secret-col${isHidden ? ' hidden-secret' : ''}` : '';
             const displayName = isHidden ? '???' : capitalize(col.data.name);
-            const imgStyle = isHidden ? 'style="filter:brightness(0)"' : '';
+            let imgStyle = '';
+            if (isHidden) {
+                imgStyle = `style="filter:brightness(0) blur(${blurPx.toFixed(1)}px);transition:filter 0.5s ease"`;
+            }
             html += `<th class="${extraClass}">
                 <div class="pokemon-header">
                     <img src="${col.data.sprite}" alt="${col.data.name}" ${imgStyle} loading="lazy">
