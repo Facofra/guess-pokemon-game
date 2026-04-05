@@ -3,19 +3,18 @@
 // ──────────────────────────────────────────────
 
 const SPRITE_BASE = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/';
-const API_BASE    = 'https://pokeapi.co/api/v2';
+// pokedex.js debe cargarse antes que script.js en index.html
+// y expone la variable global POKEDEX_DATA
 
-// Pokémon IDs de gen 1-3
-const GEN_RANGES = { 1: [1, 151], 2: [152, 251], 3: [252, 386] };
-const ALL_IDS = [];
-for (let i = 1; i <= 386; i++) ALL_IDS.push(i);
+// IDs se derivan de pokedex.json al cargar
+let ALL_IDS = [];
 
 // ──────────────────────────────────────────────
-//  CACHE
+//  DATA (loaded from pokedex.json)
 // ──────────────────────────────────────────────
-const pokeCache = {};        // id → full data object
 let   pokeList  = [];        // [ { id, name } ]   populated on load
-let   pokeDataMap = {};      // name → processed data (populated lazily)
+let   pokeDataMap = {};      // name/id → processed data
+let   categoryIndex = {};    // category → value → [names]
 
 // ──────────────────────────────────────────────
 //  CATEGORY DEFINITIONS  (metadata only)
@@ -31,7 +30,7 @@ const CATEGORY_META = {
     },
     'Generación': {
         desc: 'La generación en la que fue introducido el Pokémon.',
-        example: 'Gen 1: Pokémon 1-151 · Gen 2: 152-251 · Gen 3: 252-386'
+        example: null, // se genera dinámicamente al cargar el JSON
     },
     'Color': {
         desc: 'El color principal del Pokémon según la Pokédex.',
@@ -122,105 +121,50 @@ const TYPE_ES = {
     'steel':'Acero','fairy':'Hada'
 };
 
-// ──────────────────────────────────────────────
-//  FETCH HELPERS
-// ──────────────────────────────────────────────
-async function fetchJSON(url) {
-    if (pokeCache[url]) return pokeCache[url];
-    const r = await fetch(url);
-    if (!r.ok) throw new Error(`HTTP ${r.status} – ${url}`);
-    const data = await r.json();
-    pokeCache[url] = data;
-    return data;
-}
-
-async function fetchPokemon(idOrName) {
-    return fetchJSON(`${API_BASE}/pokemon/${idOrName}`);
-}
-
-async function fetchSpecies(idOrName) {
-    return fetchJSON(`${API_BASE}/pokemon-species/${idOrName}`);
-}
-
-async function fetchEvolutionChain(url) {
-    return fetchJSON(url);
-}
+const COLOR_ES = {
+    'black':'Negro','blue':'Azul','brown':'Marrón','gray':'Gris',
+    'green':'Verde','pink':'Rosa','purple':'Morado','red':'Rojo',
+    'white':'Blanco','yellow':'Amarillo'
+};
 
 // ──────────────────────────────────────────────
-//  BUILD PROCESSED DATA OBJECT
+//  LOAD FROM JSON
 // ──────────────────────────────────────────────
-async function buildPokemonData(idOrName) {
-    const key = String(idOrName).toLowerCase();
-    if (pokeDataMap[key]) return pokeDataMap[key];
-
-    const [poke, species] = await Promise.all([
-        fetchPokemon(idOrName),
-        fetchSpecies(idOrName)
-    ]);
-
-    const evoData = await fetchEvolutionChain(species.evolution_chain.url);
-    const stage   = getEvolutionStage(evoData.chain, poke.name);
-
-    const types = poke.types.map(t => t.type.name);
-    const eggGroups = species.egg_groups.map(g => g.name);
-
-    let legendStatus = 'Normal';
-    if (species.is_legendary) legendStatus = 'Legendario';
-    if (species.is_mythical)  legendStatus = 'Mítico';
-
-    const gen = getGenFromId(poke.id);
-
-    const data = {
-        id:      poke.id,
-        name:    poke.name,
-        sprite:  `${SPRITE_BASE}${poke.id}.png`,
-        categories: {
-            'Tipo 1':          TYPE_ES[types[0]] || types[0],
-            'Tipo 2':          types[1] ? (TYPE_ES[types[1]] || types[1]) : 'Sin tipo 2',
-            'Generación':      `Gen ${gen}`,
-            'Color':           capitalize(species.color?.name || '?'),
-            'Forma del cuerpo': SHAPE_ES[species.shape?.name] || capitalize(species.shape?.name || '?'),
-            'Grupo de huevo 1': EGG_ES[eggGroups[0]] || capitalize(eggGroups[0] || '?'),
-            'Grupo de huevo 2': eggGroups[1] ? (EGG_ES[eggGroups[1]] || capitalize(eggGroups[1])) : 'Sin grupo 2',
-            'Etapa evolutiva': stage,
-            'Legendario/Mítico': legendStatus,
-            'Hábitat':         species.habitat ? (HABITAT_ES[species.habitat.name] || capitalize(species.habitat.name)) : 'Desconocido',
-        }
-    };
-
-    pokeDataMap[key] = data;
-    pokeDataMap[String(poke.id)] = data;
-    return data;
-}
-
-function getGenFromId(id) {
-    if (id <= 151) return 1;
-    if (id <= 251) return 2;
-    return 3;
-}
-
-function getEvolutionStage(chain, targetName) {
-    if (chain.species.name === targetName) return 'Básico';
-    for (const evo1 of chain.evolves_to) {
-        if (evo1.species.name === targetName) return 'Etapa 1';
-        for (const evo2 of evo1.evolves_to) {
-            if (evo2.species.name === targetName) return 'Etapa 2';
-        }
+function loadPokedex() {
+    if (typeof POKEDEX_DATA === 'undefined') {
+        throw new Error('pokedex.js no está cargado. Ejecutá build_pokedex.py primero.');
     }
-    return 'Básico';
+    const data = POKEDEX_DATA;
+
+    categoryIndex = data.category_index;
+
+    for (const entry of data.pokemon) {
+        pokeDataMap[entry.name]          = entry;
+        pokeDataMap[String(entry.id)]    = entry;
+    }
+    pokeList = data.pokemon.map(p => ({ id: p.id, name: p.name }));
+    ALL_IDS  = data.pokemon.map(p => p.id);
+
+    // Genera el ejemplo dinámico de Generación para el glosario
+    const genGroups = {};
+    for (const p of data.pokemon) {
+        const gen = p.categories['Generación'];
+        if (!genGroups[gen]) genGroups[gen] = { min: p.id, max: p.id };
+        else { genGroups[gen].min = Math.min(genGroups[gen].min, p.id); genGroups[gen].max = Math.max(genGroups[gen].max, p.id); }
+    }
+    CATEGORY_META['Generación'].example = Object.entries(genGroups)
+        .sort(([a], [b]) => a.localeCompare(b, undefined, { numeric: true }))
+        .map(([gen, { min, max }]) => `${gen}: #${min}-${max}`)
+        .join(' · ');
+}
+
+function getPokemonData(idOrName) {
+    return pokeDataMap[String(idOrName).toLowerCase()] || pokeDataMap[String(idOrName)] || null;
 }
 
 function capitalize(str) {
     if (!str) return '?';
     return str.charAt(0).toUpperCase() + str.slice(1);
-}
-
-// ──────────────────────────────────────────────
-//  LOAD POKEMON LIST (for autocomplete)
-// ──────────────────────────────────────────────
-async function loadPokeList() {
-    const data = await fetchJSON(`${API_BASE}/pokemon?limit=386`);
-    pokeList = data.results.map((p, i) => ({ id: i + 1, name: p.name }));
 }
 
 // ──────────────────────────────────────────────
@@ -239,7 +183,6 @@ class PokemonGame {
         this.selectedAutoIdx = -1;
 
         this.initListeners();
-        this.initGlossary();
         this.preload();
     }
 
@@ -252,10 +195,11 @@ class PokemonGame {
         diffSel.style.display = 'none';
         desc.style.display    = 'none';
         try {
-            await loadPokeList();
+            loadPokedex();
         } catch(e) {
-            console.error('Error loading list', e);
+            console.error('Error loading pokedex.json', e);
         }
+        this.initGlossary();
         loading.style.display = 'none';
         diffSel.style.display = 'block';
         desc.style.display    = 'block';
@@ -292,6 +236,7 @@ class PokemonGame {
 
         const input = document.getElementById('pokemonInput');
         input.addEventListener('input',   () => this.onInput());
+        input.addEventListener('focus',   () => this.onInput());
         input.addEventListener('keydown', e  => this.onKeyDown(e));
 
         document.addEventListener('click', e => {
@@ -312,11 +257,10 @@ class PokemonGame {
     // ── AUTOCOMPLETE ────────────────────────────
     onInput() {
         const val = document.getElementById('pokemonInput').value.trim().toLowerCase();
-        if (val.length < 2) { this.hideAutocomplete(); return; }
 
+        const guessed = new Set(this.guessedList.map(g => g.data.name));
         const matches = pokeList
-            .filter(p => p.name.startsWith(val) || p.name.includes(val))
-            .slice(0, 8);
+            .filter(p => !guessed.has(p.name) && (!val || p.name.startsWith(val) || p.name.includes(val) || String(p.id).startsWith(val)));
 
         if (!matches.length) { this.hideAutocomplete(); return; }
 
@@ -336,6 +280,7 @@ class PokemonGame {
                 e.preventDefault();
                 document.getElementById('pokemonInput').value = el.dataset.name;
                 this.hideAutocomplete();
+                this.makeGuess();
             });
         });
     }
@@ -356,9 +301,8 @@ class PokemonGame {
             if (this.selectedAutoIdx >= 0 && items[this.selectedAutoIdx]) {
                 document.getElementById('pokemonInput').value = items[this.selectedAutoIdx].dataset.name;
                 this.hideAutocomplete();
-            } else {
-                this.makeGuess();
             }
+            this.makeGuess();
         } else if (e.key === 'Escape') {
             this.hideAutocomplete();
         }
@@ -368,6 +312,7 @@ class PokemonGame {
         items.forEach((el, i) => el.classList.toggle('selected', i === this.selectedAutoIdx));
         if (items[this.selectedAutoIdx]) {
             document.getElementById('pokemonInput').value = items[this.selectedAutoIdx].dataset.name;
+            items[this.selectedAutoIdx].scrollIntoView({ block: 'nearest' });
         }
     }
 
@@ -397,7 +342,8 @@ class PokemonGame {
         try {
             // Pick a random Pokémon
             const id = ALL_IDS[Math.floor(Math.random() * ALL_IDS.length)];
-            this.secretPokemon = await buildPokemonData(id);
+            this.secretPokemon = getPokemonData(id);
+            if (!this.secretPokemon) throw new Error(`No data for id ${id}`);
         } catch(e) {
             this.showMsg('Error cargando el Pokémon secreto. Reintentando...', 'warning');
             document.getElementById('loadingScreen').style.display = 'none';
@@ -441,7 +387,7 @@ class PokemonGame {
     }
 
     // ── GUESS ───────────────────────────────────
-    async makeGuess() {
+    makeGuess() {
         if (this.gameState !== 'playing') {
             this.showMsg('El juego no está activo.', 'warning'); return;
         }
@@ -458,22 +404,11 @@ class PokemonGame {
             this.showMsg(`Ya intentaste con ${capitalize(rawName)}.`, 'warning'); return;
         }
 
-        // Disable while loading
-        document.getElementById('guessBtn').disabled = true;
-        document.getElementById('guessBtn').textContent = '...';
-
-        let guessData;
-        try {
-            guessData = await buildPokemonData(rawName);
-        } catch(e) {
+        const guessData = getPokemonData(rawName);
+        if (!guessData) {
             this.showMsg('Error cargando datos. Intentá de nuevo.', 'warning');
-            document.getElementById('guessBtn').disabled  = false;
-            document.getElementById('guessBtn').textContent = 'Adivinar';
             return;
         }
-
-        document.getElementById('guessBtn').disabled  = false;
-        document.getElementById('guessBtn').textContent = 'Adivinar';
 
         this.attemptCount++;
         this.updateCounter();
@@ -531,19 +466,8 @@ class PokemonGame {
         const newShared = shared.filter(c => !this.revealedCategories.includes(c));
 
         if (this.difficulty === 'easy') {
-            // Add all new shared categories
             for (const c of newShared) {
                 this.revealedCategories.push(c);
-            }
-            // Also add non-shared but not-yet-revealed? No — only reveal shared ones.
-            // Actually in easy mode we show ALL categories (shared or not) for each guess
-            // but only REVEAL (add to list) the shared ones.
-            // We show a "no match" dot for non-shared visible categories.
-            // Let's add ALL categories as revealed so the table always shows everything:
-            for (const c of Object.keys(CATEGORY_META)) {
-                if (!this.revealedCategories.includes(c)) {
-                    this.revealedCategories.push(c);
-                }
             }
         } else {
             // Hard mode: only add the most useful new shared category
@@ -635,13 +559,18 @@ class PokemonGame {
 
                 let cellContent;
                 if (isHidden) {
-                    cellContent = `<span class="match-no">•</span>`;
+                    // categoría revelada → mostrar valor (se sabe porque coincidió)
+                    // categoría no revelada → ocultar
+                    const revealed = this.revealedCategories.includes(cat);
+                    cellContent = revealed
+                        ? this.renderValue(col.data.categories[cat], cat)
+                        : `<span class="match-no">•</span>`;
                 } else if (col.isSecret) {
                     cellContent = this.renderValue(val, cat);
                 } else {
                     const match = (val === secretVal);
                     cellContent = match
-                        ? `<span class="match-yes" title="${val}">✔</span>`
+                        ? this.renderValue(val, cat, true)
                         : `<span class="match-no" title="${val}">·</span>`;
                 }
                 html += `<td class="${extraClass}">${cellContent}</td>`;
@@ -661,15 +590,20 @@ class PokemonGame {
         this.initTooltips();
     }
 
-    renderValue(val, cat) {
+    renderValue(val, cat, isMatch = false) {
+        const matchClass = isMatch ? ' match-yes' : '';
         if (cat === 'Tipo 1' || cat === 'Tipo 2') {
             const typeKey = Object.entries(TYPE_ES).find(([,v]) => v === val)?.[0];
-            if (typeKey) return `<span class="type-badge type-${typeKey}">${val}</span>`;
+            if (typeKey) return `<span class="type-badge type-${typeKey}${matchClass}">${val}</span>`;
         }
         if (cat === 'Generación') {
-            return `<span class="gen-badge">${val}</span>`;
+            return `<span class="gen-badge${matchClass}">${val}</span>`;
         }
-        return `<span style="font-size:0.8rem;color:var(--text-dim)">${val}</span>`;
+        if (cat === 'Color') {
+            const colorKey = Object.entries(COLOR_ES).find(([,v]) => v === val)?.[0];
+            if (colorKey) return `<span class="value-label${matchClass}" style="color:var(--color-${colorKey})">${val}</span>`;
+        }
+        return `<span class="value-label${matchClass}">${val}</span>`;
     }
 
     // ── TOOLTIPS ────────────────────────────────

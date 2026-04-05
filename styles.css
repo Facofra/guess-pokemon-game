@@ -18,6 +18,17 @@
     --green-dark: #2e7d32;
     --border: rgba(255,255,255,0.08);
     --shadow: 0 8px 32px rgba(0,0,0,0.4);
+    /* Pokémon body colors */
+    --color-black:  #aaaaaa;
+    --color-blue:   #6ab4f5;
+    --color-brown:  #c8956c;
+    --color-gray:   #c0c0c0;
+    --color-green:  #5dbb63;
+    --color-pink:   #f48fb1;
+    --color-purple: #ce93d8;
+    --color-red:    #ef5350;
+    --color-white:  #eeeeee;
+    --color-yellow: #f5c518;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -429,7 +440,7 @@ body {
     background: var(--card2);
     border: 2px solid var(--blue-light);
     border-radius: 10px;
-    max-height: 220px;
+    max-height: 320px;
     overflow-y: auto;
     z-index: 500;
     display: none;
@@ -665,13 +676,25 @@ th.secret-col.hidden-secret .pokemon-header img {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 28px; height: 28px;
+    min-width: 28px; height: 28px;
+    padding: 0 6px;
     background: rgba(76,175,80,0.2);
     border: 1.5px solid var(--green);
     border-radius: 6px;
     color: var(--green);
-    font-size: 1rem;
+    font-size: 0.75rem;
     font-weight: bold;
+    animation: popIn 0.25s ease-out;
+}
+.value-label {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px; height: 28px;
+    padding: 0 6px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    color: var(--text-dim);
     animation: popIn 0.25s ease-out;
 }
 .match-no {
