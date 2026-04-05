@@ -697,6 +697,8 @@ th.secret-col.hidden-secret .pokemon-header img {
     color: var(--text-dim);
     animation: popIn 0.25s ease-out;
 }
+.bool-yes { color: var(--green); }
+.bool-no  { color: #e57373; opacity: 0.7; }
 .match-no {
     display: inline-flex;
     align-items: center;

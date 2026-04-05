@@ -58,6 +58,58 @@ COLOR_ES = {
     "yellow": "Amarillo",
 }
 
+STAT_ES = {
+    "hp": "PS", "attack": "Ataque", "defense": "Defensa",
+    "special-attack": "Ataque Esp.", "special-defense": "Defensa Esp.",
+    "speed": "Velocidad",
+}
+
+# IDs hardcodeados por categoría especial
+STARTERS = {
+    1, 2, 3,          # Bulbasaur line
+    4, 5, 6,          # Charmander line
+    7, 8, 9,          # Squirtle line
+    152, 153, 154,    # Chikorita line
+    155, 156, 157,    # Cyndaquil line
+    158, 159, 160,    # Totodile line
+    252, 253, 254,    # Treecko line
+    255, 256, 257,    # Torchic line
+    258, 259, 260,    # Mudkip line
+    387, 388, 389,    # Turtwig line
+    390, 391, 392,    # Chimchar line
+    393, 394, 395,    # Piplup line
+    495, 496, 497,    # Snivy line
+    498, 499, 500,    # Tepig line
+    501, 502, 503,    # Oshawott line
+    650, 651, 652,    # Chespin line
+    653, 654, 655,    # Fennekin line
+    656, 657, 658,    # Froakie line
+    722, 723, 724,    # Rowlet line
+    725, 726, 727,    # Litten line
+    728, 729, 730,    # Popplio line
+    810, 811, 812,    # Grookey line
+    813, 814, 815,    # Scorbunny line
+    816, 817, 818,    # Sobble line
+    906, 907, 908,    # Sprigatito line
+    909, 910, 911,    # Fuecoco line
+    912, 913, 914,    # Quaxly line
+}
+
+FOSSILS = {
+    138, 139, 140, 141, 142,          # Gen 1
+    345, 346, 347, 348,               # Gen 3
+    408, 409, 410, 411,               # Gen 4
+    564, 565, 566, 567,               # Gen 5
+    696, 697, 698, 699,               # Gen 6
+    880, 881, 882, 883,               # Gen 8
+}
+
+BABIES = {
+    172, 173, 174, 175, 236, 238, 239, 240, 298, 360,   # Gen 2-3
+    406, 433, 438, 439, 440, 446, 447, 458,              # Gen 4
+    848,                                                  # Gen 8
+}
+
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 def get(url, retries=3):
@@ -116,6 +168,27 @@ def evolution_stage(chain, target_name):
 def capitalize(s):
     return s[0].upper() + s[1:] if s else "?"
 
+def get_genus_es(species):
+    """Devuelve el género del Pokémon en español (ej: 'Pokémon Ratón')."""
+    for entry in species.get("genera", []):
+        if entry["language"]["name"] == "es":
+            return entry["genus"]
+    # Fallback a inglés si no hay traducción
+    for entry in species.get("genera", []):
+        if entry["language"]["name"] == "en":
+            return entry["genus"]
+    return "?"
+
+def get_highest_stat(poke):
+    """Devuelve el nombre en español de la stat base más alta."""
+    stats = {s["stat"]["name"]: s["base_stat"] for s in poke["stats"]}
+    best = max(stats, key=stats.get)
+    return STAT_ES.get(best, best)
+
+def has_alternative_forms(species):
+    """True si el Pokémon tiene más de una variedad (formas alternas/regionales)."""
+    return len(species.get("varieties", [])) > 1
+
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def build_pokedex():
@@ -156,16 +229,22 @@ def build_pokedex():
             "name":   poke["name"],
             "sprite": f"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/{pid}.png",
             "categories": {
-                "Tipo 1":           TYPE_ES.get(types[0], capitalize(types[0])) if types else "?",
-                "Tipo 2":           TYPE_ES.get(types[1], capitalize(types[1])) if len(types) > 1 else "Sin tipo 2",
-                "Generación":       gen_from_id(pid),
-                "Color":            COLOR_ES.get(color_key, capitalize(color_key)) if color_key else "?",
-                "Forma del cuerpo": SHAPE_ES.get(shape_key, capitalize(shape_key)) if shape_key else "?",
-                "Grupo de huevo 1": EGG_ES.get(egg_groups[0], capitalize(egg_groups[0])) if egg_groups else "?",
-                "Grupo de huevo 2": EGG_ES.get(egg_groups[1], capitalize(egg_groups[1])) if len(egg_groups) > 1 else "Sin grupo 2",
-                "Etapa evolutiva":  stage,
-                "Legendario/Mítico": legend,
-                "Hábitat":          HABITAT_ES.get(habitat_key, capitalize(habitat_key)) if habitat_key else "Desconocido",
+                "Tipo 1":             TYPE_ES.get(types[0], capitalize(types[0])) if types else "?",
+                "Tipo 2":             TYPE_ES.get(types[1], capitalize(types[1])) if len(types) > 1 else "Sin tipo 2",
+                "Generación":         gen_from_id(pid),
+                "Color":              COLOR_ES.get(color_key, capitalize(color_key)) if color_key else "?",
+                "Forma del cuerpo":   SHAPE_ES.get(shape_key, capitalize(shape_key)) if shape_key else "?",
+                "Grupo de huevo 1":   EGG_ES.get(egg_groups[0], capitalize(egg_groups[0])) if egg_groups else "?",
+                "Grupo de huevo 2":   EGG_ES.get(egg_groups[1], capitalize(egg_groups[1])) if len(egg_groups) > 1 else "Sin grupo 2",
+                "Etapa evolutiva":    stage,
+                "Legendario/Mítico":  legend,
+                "Hábitat":            HABITAT_ES.get(habitat_key, capitalize(habitat_key)) if habitat_key else "Desconocido",
+                "Especie":            get_genus_es(species),
+                "Stat más alta":      get_highest_stat(poke),
+                "Forma alternativa":  "Sí" if has_alternative_forms(species) else "No",
+                "Starter":            "Sí" if pid in STARTERS else "No",
+                "Bebé":               "Sí" if pid in BABIES or species.get("is_baby") else "No",
+                "Fósil":              "Sí" if pid in FOSSILS else "No",
             }
         }
         pokemon_list.append(entry)

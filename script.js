@@ -60,6 +60,30 @@ const CATEGORY_META = {
         desc: 'El hábitat natural del Pokémon según la Pokédex. Algunos Pokémon no tienen hábitat definido.',
         example: 'Squirtle → Agua · Geodude → Montaña · Eevee → Ciudad'
     },
+    'Especie': {
+        desc: 'La categoría de especie del Pokémon según la Pokédex.',
+        example: 'Pikachu → Pokémon Ratón · Charizard → Pokémon Llama'
+    },
+    'Stat más alta': {
+        desc: 'La estadística base más alta del Pokémon.',
+        example: 'Alakazam → Ataque Esp. · Machamp → Ataque · Snorlax → PS'
+    },
+    'Forma alternativa': {
+        desc: 'Indica si el Pokémon tiene formas alternativas o variantes regionales.',
+        example: 'Meowth → Sí (forma de Galar) · Pikachu → Sí · Rattata → No'
+    },
+    'Starter': {
+        desc: 'Indica si el Pokémon es uno de los Pokémon iniciales que se pueden elegir al comenzar el juego.',
+        example: 'Bulbasaur → Sí · Charmander → Sí · Pidgey → No'
+    },
+    'Bebé': {
+        desc: 'Indica si el Pokémon es una forma bebé que se obtiene mediante cría.',
+        example: 'Pichu → Sí · Cleffa → Sí · Pikachu → No'
+    },
+    'Fósil': {
+        desc: 'Indica si el Pokémon se obtiene a partir de un fósil.',
+        example: 'Kabuto → Sí · Aerodactyl → Sí · Squirtle → No'
+    },
 };
 
 // Nombre en español para formas de cuerpo
@@ -604,6 +628,12 @@ class PokemonGame {
         if (cat === 'Color') {
             const colorKey = Object.entries(COLOR_ES).find(([,v]) => v === val)?.[0];
             if (colorKey) return `<span class="value-label${matchClass}" style="color:var(--color-${colorKey})">${val}</span>`;
+        }
+        if (['Forma alternativa', 'Starter', 'Bebé', 'Fósil'].includes(cat)) {
+            const yes = val === 'Sí';
+            return yes
+                ? `<span class="value-label${matchClass} bool-yes">✔</span>`
+                : `<span class="value-label${matchClass} bool-no">✘</span>`;
         }
         return `<span class="value-label${matchClass}">${val}</span>`;
     }
