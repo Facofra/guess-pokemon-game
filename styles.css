@@ -505,7 +505,7 @@ body {
 .autocomplete-item:not(:last-child) { border-bottom: 1px solid var(--border); }
 .autocomplete-item .item-num { color: var(--text-dim); font-size: 0.75rem; min-width: 36px; }
 .autocomplete-item img {
-    width: 28px; height: 28px;
+    width: 56px; height: 56px;
     image-rendering: pixelated;
 }
 
@@ -526,10 +526,14 @@ body {
     box-shadow: 0 4px 12px rgba(245,197,24,0.3);
 }
 .btn-guess:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(245,197,24,0.4); }
-.debug-id-input {
+.debug-wrapper {
     display: none;
-    width: 90px;
-    padding: 10px 12px;
+    align-items: center;
+    gap: 4px;
+}
+.debug-id-input {
+    width: 80px;
+    padding: 10px 8px;
     background: var(--bg2);
     border: 2px dashed #f5c51888;
     border-radius: 8px;
@@ -538,6 +542,16 @@ body {
     text-align: center;
 }
 .debug-id-input::placeholder { color: #f5c51855; }
+.debug-close {
+    background: none;
+    border: none;
+    color: #f5c51888;
+    font-size: 1.1rem;
+    cursor: pointer;
+    padding: 2px 4px;
+    line-height: 1;
+}
+.debug-close:hover { color: var(--yellow); }
 .btn-stop {
     background: var(--bg2);
     color: var(--text-dim);
@@ -667,7 +681,7 @@ body {
     min-width: 70px;
 }
 .pokemon-header img {
-    width: 48px; height: 48px;
+    width: 96px; height: 96px;
     image-rendering: pixelated;
     filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
 }
@@ -905,6 +919,7 @@ th.secret-col.hidden-secret .pokemon-header img {
     .autocomplete-wrapper { flex: 1; min-width: 0; }
     #pokemonInput { padding: 10px 10px; font-size: 0.8rem; }
     .btn-guess { font-size: 0.65rem; padding: 8px 10px; white-space: nowrap; }
+    .autocomplete-item img { width: 28px; height: 28px; }
 
 
     .matrix-container {

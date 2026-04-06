@@ -281,7 +281,10 @@ class PokemonGame {
         document.getElementById('restartBtn')   .addEventListener('click', () => this.restartGame());
         document.getElementById('guessBtn')     .addEventListener('click', () => this.makeGuess());
         if (IS_LOCAL) {
-            document.getElementById('debugIdInput').style.display = 'block';
+            document.getElementById('debugWrapper').style.display = 'flex';
+            document.getElementById('debugCloseBtn').addEventListener('click', () => {
+                document.getElementById('debugWrapper').style.display = 'none';
+            });
         }
 
         const input = document.getElementById('pokemonInput');
