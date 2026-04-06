@@ -527,6 +527,13 @@ class PokemonGame {
     getSharedCategories(guessData) {
         const shared = [];
         for (const cat of Object.keys(CATEGORY_META)) {
+            // Si el secreto no tiene preevolución, omitir Método evolutivo
+            // (ya está cubierto por Etapa evolutiva = "Básico")
+            if (cat === 'Método evolutivo') {
+                const sVal = this.secretPokemon.categories[cat];
+                const sArr = Array.isArray(sVal) ? sVal : [sVal];
+                if (sArr.includes('Sin preevolución')) continue;
+            }
             const gVal = guessData.categories[cat];
             const sVal = this.secretPokemon.categories[cat];
             // Soporta listas (ej: Método evolutivo) — coincide si hay intersección
