@@ -1,7 +1,7 @@
 // ──────────────────────────────────────────────
 //  POKÉMON GUESSING GAME  –  script.js
 // ──────────────────────────────────────────────
-const IS_LOCAL = window.location.protocol === 'ile:'
+const IS_LOCAL = window.location.protocol === 'file:'
 
 const SPRITE_BASE = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/';
 // pokedex.js debe cargarse antes que script.js en index.html
@@ -546,7 +546,11 @@ class PokemonGame {
         this.guessedList.push({ data: guessData });
         this.addNewCategories(guessData);
         this.renderMatrix();
-        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        const inputRow = document.querySelector('.input-row');
+        if (inputRow) {
+            const top = inputRow.getBoundingClientRect().top + window.scrollY;
+            window.scrollTo({ top, behavior: 'smooth' });
+        }
     }
 
     // ── CATEGORY LOGIC ──────────────────────────
@@ -614,12 +618,15 @@ class PokemonGame {
         const showSecret = this.gameState === 'won' || this.gameState === 'lost';
         const cats = this.revealedCategories;
 
-        // Build column list: secret always first (X), then guesses in order
+        // Build column list: secret first, then guesses newest-first
         const columns = [
             { data: this.secretPokemon, isSecret: true }
         ];
-        for (const g of this.guessedList) {
-            if (!columns.find(c => c.data.id === g.data.id)) {
+        const seen = new Set([this.secretPokemon.id]);
+        for (let i = this.guessedList.length - 1; i >= 0; i--) {
+            const g = this.guessedList[i];
+            if (!seen.has(g.data.id)) {
+                seen.add(g.data.id);
                 columns.push({ data: g.data, isSecret: false });
             }
         }

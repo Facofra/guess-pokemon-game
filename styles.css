@@ -905,6 +905,15 @@ th.secret-col.hidden-secret .pokemon-header img {
     .btn-guess { font-size: 0.65rem; padding: 8px 10px; white-space: nowrap; }
 
 
+    .matrix-container {
+        margin-left: -14px;
+        margin-right: -14px;
+        border-radius: 0;
+        padding: 8px 2px;
+        border-left: none;
+        border-right: none;
+    }
+
     .matrix-table thead tr th:first-child { min-width: 120px; }
     .pokemon-header img { width: 36px; height: 36px; }
     .pokemon-header .poke-name { font-size: 0.6rem; max-width: 50px; }
