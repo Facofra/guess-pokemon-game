@@ -279,6 +279,9 @@ class PokemonGame {
         document.getElementById('stopBtn')      .addEventListener('click', () => this.stopGame());
         document.getElementById('restartBtn')   .addEventListener('click', () => this.restartGame());
         document.getElementById('guessBtn')     .addEventListener('click', () => this.makeGuess());
+        if (IS_LOCAL) {
+            document.getElementById('debugIdInput').style.display = 'block';
+        }
 
         const input = document.getElementById('pokemonInput');
         input.addEventListener('input',   () => this.onInput());
@@ -402,8 +405,17 @@ class PokemonGame {
         document.getElementById('matrixContainer').innerHTML         = '';
 
         try {
-            // Pick a random Pokémon
-            const id = this.activeIds[Math.floor(Math.random() * this.activeIds.length)];
+            // Pick secret Pokémon — debug override if IS_LOCAL and ID provided
+            let id;
+            if (IS_LOCAL) {
+                const debugVal = document.getElementById('debugIdInput')?.value.trim();
+                if (debugVal) {
+                    const debugId = parseInt(debugVal, 10);
+                    id = this.activeIds.includes(debugId) ? debugId : null;
+                    if (!id) this.showMsg(`ID ${debugId} no está en las generaciones seleccionadas.`, 'warning');
+                }
+            }
+            if (!id) id = this.activeIds[Math.floor(Math.random() * this.activeIds.length)];
             this.secretPokemon = getPokemonData(id);
             if (!this.secretPokemon) throw new Error(`No data for id ${id}`);
         } catch(e) {

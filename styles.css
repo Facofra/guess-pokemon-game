@@ -528,6 +528,18 @@ body {
     box-shadow: 0 4px 12px rgba(245,197,24,0.3);
 }
 .btn-guess:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(245,197,24,0.4); }
+.debug-id-input {
+    display: none;
+    width: 90px;
+    padding: 10px 12px;
+    background: var(--bg2);
+    border: 2px dashed #f5c51888;
+    border-radius: 8px;
+    color: var(--yellow);
+    font-size: 0.85rem;
+    text-align: center;
+}
+.debug-id-input::placeholder { color: #f5c51855; }
 .btn-stop {
     background: var(--bg2);
     color: var(--text-dim);
