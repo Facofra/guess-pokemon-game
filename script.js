@@ -1,7 +1,7 @@
 // ──────────────────────────────────────────────
 //  POKÉMON GUESSING GAME  –  script.js
 // ──────────────────────────────────────────────
-const IS_LOCAL = window.location.protocol === 'file:'
+const IS_LOCAL = window.location.protocol === 'ile:'
 
 const SPRITE_BASE = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/';
 // pokedex.js debe cargarse antes que script.js en index.html
@@ -277,6 +277,7 @@ class PokemonGame {
     initListeners() {
         document.getElementById('startGameBtn') .addEventListener('click', () => this.startGame());
         document.getElementById('stopBtn')      .addEventListener('click', () => this.stopGame());
+        document.getElementById('surrenderBtn') .addEventListener('click', () => this.surrender());
         document.getElementById('restartBtn')   .addEventListener('click', () => this.restartGame());
         document.getElementById('guessBtn')     .addEventListener('click', () => this.makeGuess());
         if (IS_LOCAL) {
@@ -444,6 +445,7 @@ class PokemonGame {
         this.updateDiffBadge();
         this.updateStatusBadge();
         this.renderMatrix();
+        document.getElementById('surrenderBtn').style.visibility = 'hidden';
         this.showMsg('¡Juego iniciado! ¿Quién es ese Pokémon?', 'info');
     }
 
@@ -475,6 +477,14 @@ class PokemonGame {
         this.startGame();
     }
 
+    surrender() {
+        if (this.gameState !== 'playing') return;
+        this.gameState = 'lost';
+        this.updateStatusBadge();
+        this.renderMatrix();
+        this.showMsg(`🏳 Te rendiste. Era ${capitalize(this.secretPokemon.name)}.`, 'warning', false);
+    }
+
     // ── GUESS ───────────────────────────────────
     makeGuess() {
         if (this.gameState !== 'playing') {
@@ -503,6 +513,7 @@ class PokemonGame {
         this.updateCounter();
         input.value = '';
         this.hideAutocomplete();
+        document.getElementById('surrenderBtn').style.visibility = 'visible';
 
         // Victory?
         if (guessData.id === this.secretPokemon.id) {

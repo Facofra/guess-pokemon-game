@@ -552,6 +552,12 @@ body {
     border: 1px solid var(--blue);
 }
 .btn-restart:hover { background: var(--blue); color: white; }
+.btn-surrender {
+    background: var(--bg2);
+    color: #e57373;
+    border: 1px solid #e5737366;
+}
+.btn-surrender:hover { border-color: #e57373; color: #ff8a80; }
 
 .action-row {
     display: flex;
@@ -559,12 +565,15 @@ body {
     justify-content: space-between;
     gap: 12px;
     flex-wrap: wrap;
+    margin-bottom: 20px;
+
 }
 .counter-badges {
     display: flex;
     gap: 8px;
     flex-wrap: wrap;
     justify-content: center;
+    margin-bottom: 10px;
 }
 .badge {
     padding: 6px 14px;
@@ -887,12 +896,14 @@ th.secret-col.hidden-secret .pokemon-header img {
     .difficulty-options { flex-direction: column; }
     .difficulty-option { min-width: 0; }
 
-    .input-row { flex-direction: column; }
-    .btn-guess { width: 100%; }
+    .action-row { flex-wrap: nowrap; }
+    .btn-stop, .btn-surrender, .btn-restart { flex: 1; font-size: 0.65rem; padding: 8px 6px; }
 
-    .action-row { flex-direction: column; align-items: stretch; }
-    .btn-stop, .btn-restart { width: 100%; text-align: center; }
-    .counter-badges { order: -1; }
+    .input-row { flex-wrap: nowrap; }
+    .autocomplete-wrapper { flex: 1; min-width: 0; }
+    #pokemonInput { padding: 10px 10px; font-size: 0.8rem; }
+    .btn-guess { font-size: 0.65rem; padding: 8px 10px; white-space: nowrap; }
+
 
     .matrix-table thead tr th:first-child { min-width: 120px; }
     .pokemon-header img { width: 36px; height: 36px; }

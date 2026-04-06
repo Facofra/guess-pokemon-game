@@ -82,13 +82,14 @@
 
         <!-- CONTROLES DEL JUEGO -->
         <div id="gameControls" class="game-controls" style="display:none;">
+            <div class="counter-badges">
+                <span id="attemptCounter" class="badge badge-attempts">Intentos: 0</span>
+                <span id="difficultyInfo" class="badge badge-diff"></span>
+                <span id="gameStatus" class="badge badge-status"></span>
+            </div>
             <div class="action-row">
                 <button class="btn btn-stop" id="stopBtn">⬅ Salir</button>
-                <div class="counter-badges">
-                    <span id="attemptCounter" class="badge badge-attempts">Intentos: 0</span>
-                    <span id="difficultyInfo" class="badge badge-diff"></span>
-                    <span id="gameStatus" class="badge badge-status"></span>
-                </div>
+                <button class="btn btn-surrender" id="surrenderBtn">🏳 Rendirse</button>
                 <button class="btn btn-restart" id="restartBtn">↺ Reiniciar</button>
             </div>
             <div class="input-row">
