@@ -1,6 +1,7 @@
 // ──────────────────────────────────────────────
 //  POKÉMON GUESSING GAME  –  script.js
 // ──────────────────────────────────────────────
+const IS_LOCAL = window.location.protocol === 'file:'
 
 const SPRITE_BASE = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/';
 // pokedex.js debe cargarse antes que script.js en index.html
@@ -84,6 +85,10 @@ const CATEGORY_META = {
         desc: 'Indica si el Pokémon se obtiene a partir de un fósil.',
         example: 'Kabuto → Sí · Aerodactyl → Sí · Squirtle → No'
     },
+    'Método evolutivo': {
+        desc: 'Cómo llegó el Pokémon a su forma actual. Sin preevolución si es forma base.',
+        example: 'Pikachu → Amistad · Charizard → Nivel · Gengar → Intercambio · Vaporeon → Piedra'
+    },
 };
 
 // Nombre en español para formas de cuerpo
@@ -134,6 +139,7 @@ const EGG_ES = {
     'ditto': 'Ditto',
     'dragon': 'Dragón',
     'no-eggs': 'Sin huevos',
+    'ground': 'Tierra',
 };
 
 // Tipos en español
@@ -170,6 +176,7 @@ function loadPokedex() {
     ALL_IDS  = data.pokemon.map(p => p.id);
 
     // Genera el ejemplo dinámico de Generación para el glosario
+    // y construye los botones de selección de gen
     const genGroups = {};
     for (const p of data.pokemon) {
         const gen = p.categories['Generación'];
@@ -180,6 +187,21 @@ function loadPokedex() {
         .sort(([a], [b]) => a.localeCompare(b, undefined, { numeric: true }))
         .map(([gen, { min, max }]) => `${gen}: #${min}-${max}`)
         .join(' · ');
+
+    // Botones de gen — activas por defecto: Gen 1, Gen 2, Gen 3
+    const DEFAULT_GENS = new Set(['Gen 1', 'Gen 2', 'Gen 3']);
+    const genBtnsContainer = document.getElementById('genButtons');
+    const sortedGens = Object.keys(genGroups).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+    genBtnsContainer.innerHTML = sortedGens.map(gen => {
+        const active = DEFAULT_GENS.has(gen) ? ' active' : '';
+        return `<button class="gen-btn${active}" data-gen="${gen}">${gen}</button>`;
+    }).join('');
+    genBtnsContainer.querySelectorAll('.gen-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            btn.classList.toggle('active');
+            document.getElementById('genError').style.display = 'none';
+        });
+    });
 }
 
 function getPokemonData(idOrName) {
@@ -284,8 +306,9 @@ class PokemonGame {
         const val = document.getElementById('pokemonInput').value.trim().toLowerCase();
 
         const guessed = new Set(this.guessedList.map(g => g.data.name));
+        const activeSet = new Set(this.activeIds || ALL_IDS);
         const matches = pokeList
-            .filter(p => !guessed.has(p.name) && (!val || p.name.startsWith(val) || p.name.includes(val) || String(p.id).startsWith(val)));
+            .filter(p => activeSet.has(p.id) && !guessed.has(p.name) && (!val || p.name.startsWith(val) || p.name.includes(val) || String(p.id).startsWith(val)));
 
         if (!matches.length) { this.hideAutocomplete(); return; }
 
@@ -350,6 +373,15 @@ class PokemonGame {
 
     // ── GAME FLOW ───────────────────────────────
     async startGame() {
+        // Validar generaciones seleccionadas
+        const selectedGens = new Set(
+            [...document.querySelectorAll('.gen-btn.active')].map(b => b.dataset.gen)
+        );
+        if (selectedGens.size === 0) {
+            document.getElementById('genError').style.display = 'block';
+            return;
+        }
+
         const diff = document.querySelector('input[name="difficulty"]:checked')?.value || 'easy';
         this.difficulty  = diff;
         this.maxAttempts = diff === 'hard' ? 10 : 0;
@@ -357,6 +389,10 @@ class PokemonGame {
         this.attemptCount = 0;
         this.guessedList = [];
         this.revealedCategories = [];
+        this.activeIds = ALL_IDS.filter(id => {
+            const p = getPokemonData(id);
+            return p && selectedGens.has(p.categories['Generación']);
+        });
 
         document.getElementById('difficultySelection').style.display = 'none';
         document.querySelector('.game-description').style.display    = 'none';
@@ -367,7 +403,7 @@ class PokemonGame {
 
         try {
             // Pick a random Pokémon
-            const id = ALL_IDS[Math.floor(Math.random() * ALL_IDS.length)];
+            const id = this.activeIds[Math.floor(Math.random() * this.activeIds.length)];
             this.secretPokemon = getPokemonData(id);
             if (!this.secretPokemon) throw new Error(`No data for id ${id}`);
         } catch(e) {
@@ -422,9 +458,9 @@ class PokemonGame {
         const rawName = input.value.trim().toLowerCase();
         if (!rawName) { this.showMsg('Escribe el nombre de un Pokémon.', 'warning'); return; }
 
-        // Validate it's in list (gen 1-3)
-        const entry = pokeList.find(p => p.name === rawName);
-        if (!entry) { this.showMsg(`"${rawName}" no es un Pokémon válido de las gen 1-3.`, 'warning'); return; }
+        const activeSet = new Set(this.activeIds);
+        const entry = pokeList.find(p => p.name === rawName && activeSet.has(p.id));
+        if (!entry) { this.showMsg(`"${rawName}" no es un Pokémon válido de las generaciones seleccionadas.`, 'warning'); return; }
 
         if (this.guessedList.some(g => g.data.name === rawName)) {
             this.showMsg(`Ya intentaste con ${capitalize(rawName)}.`, 'warning'); return;
@@ -479,7 +515,12 @@ class PokemonGame {
     getSharedCategories(guessData) {
         const shared = [];
         for (const cat of Object.keys(CATEGORY_META)) {
-            if (guessData.categories[cat] === this.secretPokemon.categories[cat]) {
+            const gVal = guessData.categories[cat];
+            const sVal = this.secretPokemon.categories[cat];
+            // Soporta listas (ej: Método evolutivo) — coincide si hay intersección
+            const gArr = Array.isArray(gVal) ? gVal : [gVal];
+            const sArr = Array.isArray(sVal) ? sVal : [sVal];
+            if (gArr.some(v => sArr.includes(v))) {
                 shared.push(cat);
             }
         }
@@ -491,8 +532,11 @@ class PokemonGame {
         const newShared = shared.filter(c => !this.revealedCategories.includes(c));
         const secretCats = this.secretPokemon.categories;
 
-        const candidateCount = (cat) =>
-            categoryIndex[cat]?.[secretCats[cat]]?.length ?? Infinity;
+        const candidateCount = (cat) => {
+            const sVal = secretCats[cat];
+            const sArr = Array.isArray(sVal) ? sVal : [sVal];
+            return Math.min(...sArr.map(v => categoryIndex[cat]?.[v]?.length ?? Infinity));
+        };
 
         if (this.difficulty === 'easy') {
             for (const c of newShared) this.revealedCategories.push(c);
@@ -593,7 +637,9 @@ class PokemonGame {
                 } else if (col.isSecret) {
                     cellContent = this.renderValue(val, cat);
                 } else {
-                    const match = (val === secretVal);
+                    const gArr = Array.isArray(val) ? val : [val];
+                    const sArr = Array.isArray(secretVal) ? secretVal : [secretVal];
+                    const match = gArr.some(v => sArr.includes(v));
                     cellContent = match
                         ? this.renderValue(val, cat)
                         : `<span class="match-no" title="${val}">·</span>`;
@@ -616,6 +662,10 @@ class PokemonGame {
     }
 
     renderValue(val, cat) {
+        // Listas (ej: Método evolutivo con múltiples caminos)
+        if (Array.isArray(val)) {
+            return val.map(v => this.renderValue(v, cat)).join('<span class="value-sep">/</span>');
+        }
         if (cat === 'Tipo 1' || cat === 'Tipo 2') {
             const typeKey = Object.entries(TYPE_ES).find(([,v]) => v === val)?.[0];
             if (typeKey) return `<span class="type-badge type-${typeKey}">${val}</span>`;

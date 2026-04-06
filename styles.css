@@ -371,6 +371,51 @@ body {
     color: var(--text-dim);
     line-height: 1.4;
 }
+.gen-selection {
+    margin-bottom: 24px;
+}
+.gen-selection-label {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+    text-align: center;
+}
+.gen-buttons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+.gen-btn {
+    padding: 8px 14px;
+    border-radius: 10px;
+    border: 2px solid var(--border);
+    background: var(--bg2);
+    color: var(--text-dim);
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.6rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+}
+.gen-btn:hover {
+    border-color: var(--blue-light);
+    color: var(--text);
+}
+.gen-btn.active {
+    border-color: var(--yellow);
+    background: rgba(245,197,24,0.12);
+    color: var(--yellow);
+    box-shadow: 0 0 12px rgba(245,197,24,0.15);
+}
+.gen-error {
+    text-align: center;
+    color: var(--red-light);
+    font-size: 0.8rem;
+    margin-top: 10px;
+}
 
 .start-game-btn {
     display: block;
@@ -699,6 +744,7 @@ th.secret-col.hidden-secret .pokemon-header img {
 }
 .bool-yes { color: var(--green); }
 .bool-no  { color: #e57373; opacity: 0.7; }
+.value-sep { color: var(--text-dim); margin: 0 2px; font-size: 0.65rem; }
 .match-no {
     display: inline-flex;
     align-items: center;

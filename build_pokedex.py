@@ -15,7 +15,7 @@ API = "https://pokeapi.co/api/v2"
 # ── Configuración ─────────────────────────────────────────────────────────────
 # Editá esta lista para elegir qué generaciones incluir.
 # Generaciones disponibles: 1 al 9
-GENERATIONS = [1, 2, 3]
+GENERATIONS = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 
 # ── Traducciones ──────────────────────────────────────────────────────────────
 
@@ -40,6 +40,7 @@ EGG_ES = {
     "humanshape": "Humanoide", "mineral": "Mineral",
     "indeterminate": "Amorfo", "ditto": "Ditto", "dragon": "Dragón",
     "no-eggs": "Sin huevos",
+    "ground": "Tierra",
 }
 
 TYPE_ES = {
@@ -189,6 +190,109 @@ def has_alternative_forms(species):
     """True si el Pokémon tiene más de una variedad (formas alternas/regionales)."""
     return len(species.get("varieties", [])) > 1
 
+# Pokémon cuya evolución es especial pero la API no lo refleja correctamente
+SPECIAL_EVO_IDS = {
+    266,  # Silcoon   — personalidad (gen 3)
+    268,  # Cascoon   — personalidad (gen 3)
+    292,  # Shedinja  — aparece al evolucionar Nincada con espacio en equipo
+    458,  # Mantyke   — necesita Remoraid en el equipo (party_species)
+    865,  # Sirfetch'd — tres golpes críticos en una batalla
+    869,  # Alcremie  — giro de joystick + hora del día
+}
+
+def classify_single_detail(d):
+    """
+    Clasifica un único evolution_detail en una de las categorías posibles.
+    Retorna un string con el método.
+    """
+    trigger = (d.get("trigger") or {}).get("name", "")
+
+    if trigger == "trade":
+        return "Intercambio"
+
+    if trigger == "use-item":
+        item_name = (d.get("item") or {}).get("name", "") or ""
+        if item_name.endswith("-stone"):
+            return "Piedra"
+        return "Especial"
+
+    if trigger == "shed":
+        # Shedinja — pero ya está en SPECIAL_EVO_IDS, por si acaso
+        return "Especial"
+
+    if trigger == "level-up":
+        # Condiciones especiales que no encajan en categorías simples
+        special_flags = [
+            d.get("min_beauty"),
+            d.get("min_affection"),
+            d.get("min_damage_taken"),
+            d.get("min_steps"),
+            d.get("min_move_count"),
+            d.get("relative_physical_stats") is not None and d.get("relative_physical_stats") != "",
+            d.get("needs_overworld_rain"),
+            d.get("turn_upside_down"),
+            d.get("party_species"),
+            d.get("party_type"),
+        ]
+        # Condiciones que sí tienen categoría propia
+        if d.get("min_happiness"):
+            return "Amistad"
+        if d.get("location"):
+            return "Lugar especial"
+        if d.get("known_move") or d.get("known_move_type"):
+            return "Aprender movimiento"
+        # Si cualquier flag especial está activo, es Especial
+        if any(special_flags):
+            return "Especial"
+        return "Nivel"
+
+    # Cualquier otro trigger (spin, three-critical-hits, etc.)
+    return "Especial"
+
+
+def get_evo_methods(chain, target_name, pid):
+    """
+    Devuelve una lista de métodos evolutivos únicos por los que el Pokémon
+    puede llegar a su forma actual. Lista porque algunos tienen múltiples
+    caminos (ej: Glaceon por piedra o por lugar especial).
+    """
+    # Excepciones hardcodeadas: la API no refleja correctamente su mecanismo
+    if pid in SPECIAL_EVO_IDS:
+        return ["Especial"]
+
+    # Busca recursivamente el nodo del target
+    def find_node(node, target):
+        for evo in node.get("evolves_to", []):
+            if evo["species"]["name"] == target:
+                return evo
+            result = find_node(evo, target)
+            if result is not None:
+                return result
+        return None
+
+    # Si es forma base, no tiene preevolución
+    if chain["species"]["name"] == target_name:
+        return ["Sin preevolución"]
+
+    node = find_node(chain, target_name)
+    if not node:
+        return ["Sin preevolución"]
+
+    details_list = node.get("evolution_details", [])
+    if not details_list:
+        return ["Sin preevolución"]
+
+    # Clasificar cada detail y deduplicar manteniendo orden
+    methods = []
+    seen = set()
+    for d in details_list:
+        m = classify_single_detail(d)
+        if m not in seen:
+            seen.add(m)
+            methods.append(m)
+
+    return methods if methods else ["Especial"]
+
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def build_pokedex():
@@ -245,6 +349,7 @@ def build_pokedex():
                 "Starter":            "Sí" if pid in STARTERS else "No",
                 "Bebé":               "Sí" if pid in BABIES or species.get("is_baby") else "No",
                 "Fósil":              "Sí" if pid in FOSSILS else "No",
+                "Método evolutivo":   get_evo_methods(chain, poke["name"], pid),
             }
         }
         pokemon_list.append(entry)
@@ -257,9 +362,12 @@ def build_pokedex():
         for cat, val in entry["categories"].items():
             if cat not in category_index:
                 category_index[cat] = {}
-            if val not in category_index[cat]:
-                category_index[cat][val] = []
-            category_index[cat][val].append(entry["name"])
+            # val puede ser string o lista (ej: Método evolutivo)
+            values = val if isinstance(val, list) else [val]
+            for v in values:
+                if v not in category_index[cat]:
+                    category_index[cat][v] = []
+                category_index[cat][v].append(entry["name"])
 
     # ── Output como .js (compatible con file:// y GitHub Pages) ──────────────
     output = {
