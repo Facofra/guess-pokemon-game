@@ -709,7 +709,7 @@ class PokemonGame {
         }
 
         html += `</tbody></table>`;
-        container.innerHTML = html;
+        container.innerHTML = `<div class="matrix-scroll">${html}</div>`;
         this.initTooltips();
     }
 

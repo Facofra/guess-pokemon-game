@@ -594,12 +594,15 @@ body {
     border: 1px solid var(--border);
     border-radius: 16px;
     padding: 20px;
-    overflow: auto;
     box-shadow: var(--shadow);
 }
-.matrix-container::-webkit-scrollbar { height: 6px; width: 6px; }
-.matrix-container::-webkit-scrollbar-track { background: var(--bg2); border-radius: 3px; }
-.matrix-container::-webkit-scrollbar-thumb { background: var(--blue); border-radius: 3px; }
+.matrix-scroll {
+    overflow-x: auto;
+    overflow-y: visible;
+}
+.matrix-scroll::-webkit-scrollbar { height: 6px; width: 6px; }
+.matrix-scroll::-webkit-scrollbar-track { background: var(--bg2); border-radius: 3px; }
+.matrix-scroll::-webkit-scrollbar-thumb { background: var(--blue); border-radius: 3px; }
 
 .empty-state {
     text-align: center;
@@ -647,11 +650,12 @@ body {
 .matrix-table thead tr th:first-child {
     text-align: left;
     padding-left: 16px;
-    background: var(--bg);
+    background: #1a1a2e;
     position: sticky;
     left: 0;
     z-index: 20;
     min-width: 160px;
+    box-shadow: 4px 0 8px rgba(0,0,0,0.4);
     color: var(--text);
     border-bottom: 2px solid var(--blue);
 }
@@ -706,15 +710,16 @@ th.secret-col.hidden-secret .pokemon-header img {
 .matrix-table tbody tr td:first-child {
     text-align: left;
     padding-left: 16px;
-    background: var(--bg2);
+    background: #16213e;
     position: sticky;
     left: 0;
     z-index: 9;
     border-right: 2px solid var(--blue-dark);
     font-weight: 700;
     color: var(--text);
+    box-shadow: 4px 0 8px rgba(0,0,0,0.4);
 }
-.matrix-table tbody tr:hover td:first-child { background: var(--card); }
+.matrix-table tbody tr:hover td:first-child { background: #1e2d50; }
 
 .matrix-table tbody td.secret-col { background: rgba(245,197,24,0.04); }
 .matrix-table tbody tr:hover td.secret-col { background: rgba(245,197,24,0.08); }
