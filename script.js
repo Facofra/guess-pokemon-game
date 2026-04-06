@@ -397,6 +397,21 @@ class PokemonGame {
             return p && selectedGens.has(p.categories['Generación']);
         });
 
+        // Índice filtrado por generaciones activas — usado para candidateCount real
+        this.activeCategoryIndex = {};
+        for (const id of this.activeIds) {
+            const p = getPokemonData(id);
+            if (!p) continue;
+            for (const [cat, val] of Object.entries(p.categories)) {
+                if (!this.activeCategoryIndex[cat]) this.activeCategoryIndex[cat] = {};
+                const vals = Array.isArray(val) ? val : [val];
+                for (const v of vals) {
+                    if (!this.activeCategoryIndex[cat][v]) this.activeCategoryIndex[cat][v] = [];
+                    this.activeCategoryIndex[cat][v].push(p.name);
+                }
+            }
+        }
+
         document.getElementById('difficultySelection').style.display = 'none';
         document.querySelector('.game-description').style.display    = 'none';
         document.getElementById('gameControls').style.display        = 'block';
@@ -554,7 +569,7 @@ class PokemonGame {
         const candidateCount = (cat) => {
             const sVal = secretCats[cat];
             const sArr = Array.isArray(sVal) ? sVal : [sVal];
-            return Math.min(...sArr.map(v => categoryIndex[cat]?.[v]?.length ?? Infinity));
+            return Math.min(...sArr.map(v => this.activeCategoryIndex[cat]?.[v]?.length ?? Infinity));
         };
 
         if (this.difficulty === 'easy') {
