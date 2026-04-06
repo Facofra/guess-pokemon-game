@@ -204,14 +204,12 @@ body {
     text-align: center;
 }
 .header-pokeball {
-    font-size: 2rem;
-    color: var(--red);
-    opacity: 0.4;
-    animation: spin 8s linear infinite;
+    width: 40px;
+    height: 40px;
+    opacity: 0.5;
+    image-rendering: pixelated;
 }
-.header-pokeball:last-child { animation-direction: reverse; }
 
-@keyframes spin { to { transform: rotate(360deg); } }
 
 .game-title {
     font-family: 'Press Start 2P', monospace;
@@ -611,10 +609,10 @@ body {
 }
 .pokeball-spin {
     display: block;
-    font-size: 2.5rem;
-    color: var(--red);
-    margin-bottom: 12px;
-    animation: spin 3s linear infinite;
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 12px;
+    image-rendering: pixelated;
 }
 .empty-state p { font-size: 1rem; }
 
@@ -864,7 +862,6 @@ th.secret-col.hidden-secret .pokemon-header img {
 .loading-pokeball {
     font-size: 3rem;
     color: var(--red);
-    animation: spin 1s linear infinite;
     display: block;
     margin-bottom: 16px;
 }
@@ -896,7 +893,7 @@ th.secret-col.hidden-secret .pokemon-header img {
     .glossary-btn::before { content: "📖"; font-size: 1rem; }
 
     .game-header { gap: 10px; padding: 20px 0 14px; }
-    .header-pokeball { font-size: 1.2rem; }
+    .header-pokeball { width: 28px; height: 28px; }
 
     .difficulty-options { flex-direction: column; }
     .difficulty-option { min-width: 0; }

@@ -609,7 +609,7 @@ class PokemonGame {
 
         if (this.revealedCategories.length === 0 && this.guessedList.length === 0) {
             container.innerHTML = `<div class="empty-state">
-                <span class="pokeball-spin">◉</span>
+                <img class="pokeball-spin" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" alt="pokeball">
                 <p>Ingresa tu primer Pokémon para revelar las pistas</p>
             </div>`;
             return;
@@ -734,6 +734,9 @@ class PokemonGame {
             return yes
                 ? `<span class="value-label bool-yes">✔</span>`
                 : `<span class="value-label bool-no">✘</span>`;
+        }
+        if (cat === 'Legendario/Mítico' && val === 'Normal') {
+            return `<span class="value-label bool-no">✘</span>`;
         }
         return `<span class="value-label">${val}</span>`;
     }
