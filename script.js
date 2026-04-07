@@ -97,6 +97,14 @@ const CATEGORY_META = {
         desc: 'Qué tan rápido gana experiencia el Pokémon para subir de nivel.',
         example: 'Mewtwo → Lenta · Caterpie → Rápida · Pikachu → Media-Lenta'
     },
+    'Altura': {
+        desc: 'Rango de altura del Pokémon: el tercio más bajo es Bajo, el del medio Mediano, y el más alto Alto.',
+        example: null,
+    },
+    'Peso': {
+        desc: 'Rango de peso del Pokémon: el tercio más liviano es Liviano, el del medio Medio, y el más pesado Pesado.',
+        example: null,
+    },
 };
 
 // Nombre en español para formas de cuerpo
@@ -195,6 +203,20 @@ function loadPokedex() {
         .sort(([a], [b]) => a.localeCompare(b, undefined, { numeric: true }))
         .map(([gen, { min, max }]) => `${gen}: #${min}-${max}`)
         .join(' · ');
+
+    if (data.thresholds) {
+        const ht = data.thresholds['Altura'];
+        CATEGORY_META['Altura'].example =
+            `Bajo: menos de ${ht.t1_display} (ej: ${capitalize(ht.t1_example)}) · ` +
+            `Mediano: hasta ${ht.t2_display} (ej: ${capitalize(ht.t2_example)}) · ` +
+            `Alto: ${ht.t2_display} o más`;
+
+        const pt = data.thresholds['Peso'];
+        CATEGORY_META['Peso'].example =
+            `Liviano: menos de ${pt.t1_display} (ej: ${capitalize(pt.t1_example)}) · ` +
+            `Medio: hasta ${pt.t2_display} (ej: ${capitalize(pt.t2_example)}) · ` +
+            `Pesado: ${pt.t2_display} o más`;
+    }
 
     // Botones de gen — activas por defecto: Gen 1, Gen 2, Gen 3
     const DEFAULT_GENS = new Set(['Gen 1', 'Gen 2', 'Gen 3']);

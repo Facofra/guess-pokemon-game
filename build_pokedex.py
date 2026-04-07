@@ -15,8 +15,7 @@ API = "https://pokeapi.co/api/v2"
 # ── Configuración ─────────────────────────────────────────────────────────────
 # Editá esta lista para elegir qué generaciones incluir.
 # Generaciones disponibles: 1 al 9
-# GENERATIONS = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-GENERATIONS = [1]
+GENERATIONS = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 
 # ── Traducciones ──────────────────────────────────────────────────────────────
 
@@ -307,6 +306,38 @@ def get_evo_methods(chain, target_name, pid):
 
     return methods if methods else ["Especial"]
 
+def compute_thresholds(pokemon_list):
+    """
+    Calcula los umbrales de terciles para altura y peso.
+    Divide el listado en tres grupos iguales (por cantidad de Pokémon)
+    ordenados ascendentemente. Devuelve los valores de corte y ejemplos.
+    """
+    n = len(pokemon_list)
+    t1_idx = n // 3       # primer índice del segundo tercio
+    t2_idx = 2 * (n // 3) # primer índice del tercer tercio
+
+    by_height = sorted(pokemon_list, key=lambda e: e["_height"])
+    by_weight = sorted(pokemon_list, key=lambda e: e["_weight"])
+
+    return {
+        "Altura": {
+            "t1":         by_height[t1_idx]["_height"],
+            "t2":         by_height[t2_idx]["_height"],
+            "t1_display": f"{by_height[t1_idx]['_height'] / 10:.1f}m",
+            "t2_display": f"{by_height[t2_idx]['_height'] / 10:.1f}m",
+            "t1_example": by_height[t1_idx]["name"],
+            "t2_example": by_height[t2_idx]["name"],
+        },
+        "Peso": {
+            "t1":         by_weight[t1_idx]["_weight"],
+            "t2":         by_weight[t2_idx]["_weight"],
+            "t1_display": f"{by_weight[t1_idx]['_weight'] / 10:.1f}kg",
+            "t2_display": f"{by_weight[t2_idx]['_weight'] / 10:.1f}kg",
+            "t1_example": by_weight[t1_idx]["name"],
+            "t2_example": by_weight[t2_idx]["name"],
+        },
+    }
+
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def build_pokedex():
@@ -343,9 +374,11 @@ def build_pokedex():
         habitat_key = (species.get("habitat") or {}).get("name", "")
 
         entry = {
-            "id":     pid,
-            "name":   poke["name"],
-            "sprite": f"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/{pid}.png",
+            "id":      pid,
+            "name":    poke["name"],
+            "sprite":  f"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/{pid}.png",
+            "_height": poke["height"],
+            "_weight": poke["weight"],
             "categories": {
                 "Tipo 1":             TYPE_ES.get(types[0], capitalize(types[0])) if types else "?",
                 "Tipo 2":             TYPE_ES.get(types[1], capitalize(types[1])) if len(types) > 1 else "Sin tipo 2",
@@ -370,7 +403,19 @@ def build_pokedex():
         }
         pokemon_list.append(entry)
 
-    print(f"\nFetched {len(pokemon_list)} Pokémon. Building index...")
+    print(f"\nFetched {len(pokemon_list)} Pokémon. Computing thresholds...")
+
+    # ── Compute tercile thresholds and assign Altura / Peso categories ─────────
+    thresholds = compute_thresholds(pokemon_list)
+    ht = thresholds["Altura"]
+    pt = thresholds["Peso"]
+    for entry in pokemon_list:
+        h = entry.pop("_height")
+        w = entry.pop("_weight")
+        entry["categories"]["Altura"] = "Bajo"    if h < ht["t1"] else ("Mediano" if h < ht["t2"] else "Alto")
+        entry["categories"]["Peso"]   = "Liviano" if w < pt["t1"] else ("Medio"   if w < pt["t2"] else "Pesado")
+
+    print("Building index...")
 
     # ── Build category index: category → value → [names] ──────────────────────
     category_index = {}
@@ -389,6 +434,7 @@ def build_pokedex():
     output = {
         "pokemon":        pokemon_list,
         "category_index": category_index,
+        "thresholds":     thresholds,
     }
 
     out_path = "pokedex.js"
