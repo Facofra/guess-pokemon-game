@@ -228,28 +228,52 @@ body {
     position: fixed;
     inset: 0;
     z-index: 9999;
-    display: flex;
+    display: none;
     align-items: center;
     justify-content: center;
     pointer-events: none;
-    opacity: 0;
-    visibility: hidden;
 }
 .victory-banner.show {
-    opacity: 1;
-    visibility: visible;
+    display: flex;
     animation: victoryFade 3.5s ease-in-out forwards;
 }
 .victory-inner {
     text-align: center;
     animation: victoryBounce 3.5s ease-in-out forwards;
 }
+.victory-pokemon-wrap {
+    position: relative;
+    width: 140px;
+    height: 140px;
+    margin: 0 auto 10px;
+}
+.victory-orbit {
+    position: absolute;
+    inset: 0;
+    animation: starSpin 2s linear infinite;
+}
 .victory-star {
-    font-size: 5rem;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    font-size: 1.8rem;
     color: var(--yellow);
-    animation: starSpin 1s linear infinite;
-    display: block;
-    text-shadow: 0 0 40px var(--yellow);
+    text-shadow: 0 0 20px var(--yellow);
+    line-height: 1;
+}
+.victory-star:nth-child(1) { transform: translate(-50%, -50%) rotate(0deg)   translateY(-62px); }
+.victory-star:nth-child(2) { transform: translate(-50%, -50%) rotate(72deg)  translateY(-62px); }
+.victory-star:nth-child(3) { transform: translate(-50%, -50%) rotate(144deg) translateY(-62px); }
+.victory-star:nth-child(4) { transform: translate(-50%, -50%) rotate(216deg) translateY(-62px); }
+.victory-star:nth-child(5) { transform: translate(-50%, -50%) rotate(288deg) translateY(-62px); }
+.victory-sprite {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    width: 80px;
+    height: 80px;
+    image-rendering: pixelated;
+    filter: drop-shadow(0 0 12px var(--yellow));
 }
 .victory-text {
     font-family: 'Press Start 2P', monospace;

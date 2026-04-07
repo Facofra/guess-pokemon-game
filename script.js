@@ -515,6 +515,7 @@ class PokemonGame {
         this.attemptCount++;
         this.updateCounter();
         input.value = '';
+        if (window.matchMedia('(max-width: 600px)').matches) input.blur();
         this.hideAutocomplete();
         document.getElementById('surrenderBtn').style.visibility = 'visible';
 
