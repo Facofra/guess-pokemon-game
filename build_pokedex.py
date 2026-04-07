@@ -15,7 +15,8 @@ API = "https://pokeapi.co/api/v2"
 # ── Configuración ─────────────────────────────────────────────────────────────
 # Editá esta lista para elegir qué generaciones incluir.
 # Generaciones disponibles: 1 al 9
-GENERATIONS = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+# GENERATIONS = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+GENERATIONS = [1]
 
 # ── Traducciones ──────────────────────────────────────────────────────────────
 
@@ -50,6 +51,15 @@ TYPE_ES = {
     "flying": "Volador", "psychic": "Psíquico", "bug": "Bicho",
     "rock": "Roca", "ghost": "Fantasma", "dragon": "Dragón",
     "dark": "Siniestro", "steel": "Acero", "fairy": "Hada",
+}
+
+GROWTH_RATE_ES = {
+    "slow":                 "Lenta",
+    "medium":               "Media",
+    "fast":                 "Rápida",
+    "medium-slow":          "Media-Lenta",
+    "slow-then-very-fast":  "Errática",
+    "fast-then-very-slow":  "Fluctuante",
 }
 
 COLOR_ES = {
@@ -189,6 +199,10 @@ def get_highest_stat(poke):
 def has_alternative_forms(species):
     """True si el Pokémon tiene más de una variedad (formas alternas/regionales)."""
     return len(species.get("varieties", [])) > 1
+
+def has_mega(species):
+    """True si el Pokémon tiene una mega evolución."""
+    return any("mega" in v["pokemon"]["name"] for v in species.get("varieties", []))
 
 # Pokémon cuya evolución es especial pero la API no lo refleja correctamente
 SPECIAL_EVO_IDS = {
@@ -349,6 +363,8 @@ def build_pokedex():
                 "Starter":            "Sí" if pid in STARTERS else "No",
                 "Bebé":               "Sí" if pid in BABIES or species.get("is_baby") else "No",
                 "Fósil":              "Sí" if pid in FOSSILS else "No",
+                "Mega":               "Sí" if has_mega(species) else "No",
+                "Curva de experiencia": GROWTH_RATE_ES.get(species.get("growth_rate", {}).get("name", ""), capitalize(species.get("growth_rate", {}).get("name", "?"))),
                 "Método evolutivo":   get_evo_methods(chain, poke["name"], pid),
             }
         }

@@ -89,6 +89,14 @@ const CATEGORY_META = {
         desc: 'Cómo llegó el Pokémon a su forma actual. Sin preevolución si es forma base.',
         example: 'Pikachu → Amistad · Charizard → Nivel · Gengar → Intercambio · Vaporeon → Piedra'
     },
+    'Mega': {
+        desc: 'Indica si el Pokémon tiene una mega evolución disponible.',
+        example: 'Charizard → Sí · Mewtwo → Sí · Pikachu → No'
+    },
+    'Curva de experiencia': {
+        desc: 'Qué tan rápido gana experiencia el Pokémon para subir de nivel.',
+        example: 'Mewtwo → Lenta · Caterpie → Rápida · Pikachu → Media-Lenta'
+    },
 };
 
 // Nombre en español para formas de cuerpo
@@ -733,7 +741,7 @@ class PokemonGame {
             const colorKey = Object.entries(COLOR_ES).find(([,v]) => v === val)?.[0];
             if (colorKey) return `<span class="value-label" style="color:var(--color-${colorKey})">${val}</span>`;
         }
-        if (['Forma alternativa', 'Starter', 'Bebé', 'Fósil'].includes(cat)) {
+        if (['Forma alternativa', 'Starter', 'Bebé', 'Fósil', 'Mega'].includes(cat)) {
             const yes = val === 'Sí';
             return yes
                 ? `<span class="value-label bool-yes">✔</span>`
