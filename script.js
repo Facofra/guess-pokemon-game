@@ -799,6 +799,7 @@ class PokemonGame {
                 let left = r.right + 10;
                 let top  = r.top + r.height/2 - tr.height/2;
                 if (left + tr.width  > window.innerWidth - 10)  left = r.left - tr.width - 10;
+                if (left < 10) left = 10;
                 if (top < 10) top = 10;
                 if (top + tr.height > window.innerHeight - 10)  top  = window.innerHeight - tr.height - 10;
                 tooltip.style.left = left + 'px';
