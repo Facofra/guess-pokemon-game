@@ -3,6 +3,11 @@
 // ──────────────────────────────────────────────
 const IS_LOCAL = window.location.protocol === 'file:'
 
+// ── Opciones de desarrollo ─────────────────────
+// true  → en modo difícil, el jugador elige qué categoría revelar (de hasta 3 opciones)
+// false → se revela automáticamente la más útil (comportamiento original)
+const HARD_MODE_PLAYER_PICKS = true;
+
 const SPRITE_BASE = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/';
 // pokedex.js debe cargarse antes que script.js en index.html
 // y expone la variable global POKEDEX_DATA
@@ -573,18 +578,25 @@ class PokemonGame {
         }
 
         // Normal guess
-        const newCats = this.getSharedCategories(guessData);
-        if (newCats.length === 0) {
+        this.guessedList.push({ data: guessData });
+        const newShared = this.getSortedNewShared(guessData);
+
+        if (this.difficulty === 'hard' && newShared.length > 1 && HARD_MODE_PLAYER_PICKS) {
+            this.renderMatrix();
+            this.showCategoryPicker(newShared.slice(0, 3), (chosenCat) => {
+                this.revealCategory(chosenCat);
+                this.renderMatrix();
+                this.scrollToInput();
+            });
+            return;
+        }
+
+        if (newShared.length === 0) {
             this.showMsg(`${capitalize(guessData.name)} no comparte ninguna categoría nueva.`, 'info');
         }
-        this.guessedList.push({ data: guessData });
         this.addNewCategories(guessData);
         this.renderMatrix();
-        const inputRow = document.querySelector('.input-row');
-        if (inputRow) {
-            const top = inputRow.getBoundingClientRect().top + window.scrollY;
-            window.scrollTo({ top, behavior: 'smooth' });
-        }
+        this.scrollToInput();
     }
 
     // ── CATEGORY LOGIC ──────────────────────────
@@ -610,30 +622,58 @@ class PokemonGame {
         return shared;
     }
 
-    addNewCategories(guessData) {
+    candidateCount(cat) {
+        const sVal = this.secretPokemon.categories[cat];
+        const sArr = Array.isArray(sVal) ? sVal : [sVal];
+        return Math.min(...sArr.map(v => this.activeCategoryIndex[cat]?.[v]?.length ?? Infinity));
+    }
+
+    getSortedNewShared(guessData) {
         const shared = this.getSharedCategories(guessData);
-        const newShared = shared.filter(c => !this.revealedCategories.includes(c));
-        const secretCats = this.secretPokemon.categories;
+        return shared
+            .filter(c => !this.revealedCategories.includes(c))
+            .sort((a, b) => this.candidateCount(a) - this.candidateCount(b));
+    }
 
-        const candidateCount = (cat) => {
-            const sVal = secretCats[cat];
-            const sArr = Array.isArray(sVal) ? sVal : [sVal];
-            return Math.min(...sArr.map(v => this.activeCategoryIndex[cat]?.[v]?.length ?? Infinity));
-        };
+    revealCategory(cat) {
+        if (!this.revealedCategories.includes(cat)) this.revealedCategories.push(cat);
+        this.revealedCategories.sort((a, b) => this.candidateCount(a) - this.candidateCount(b));
+    }
 
+    addNewCategories(guessData) {
+        const newShared = this.getSortedNewShared(guessData);
         if (this.difficulty === 'easy') {
-            for (const c of newShared) this.revealedCategories.push(c);
-        } else {
-            if (newShared.length > 0) {
-                const bestCat = newShared.reduce((best, c) =>
-                    candidateCount(c) < candidateCount(best) ? c : best
-                );
-                this.revealedCategories.push(bestCat);
-            }
+            for (const c of newShared) this.revealCategory(c);
+        } else if (newShared.length > 0) {
+            this.revealCategory(newShared[0]); // más útil = primero después del sort
         }
+    }
 
-        // Reordenar todas las categorías reveladas: más útil (menos candidatos) arriba
-        this.revealedCategories.sort((a, b) => candidateCount(a) - candidateCount(b));
+    showCategoryPicker(options, onChoose) {
+        const overlay = document.createElement('div');
+        overlay.className = 'category-picker-overlay';
+        overlay.innerHTML = `
+            <div class="category-picker">
+                <div class="category-picker-title">Revelar categoría</div>
+                <div class="category-picker-options">
+                    ${options.map(cat => `<button class="gen-btn cat-pick-btn" data-cat="${cat}">${cat}</button>`).join('')}
+                </div>
+            </div>`;
+        document.body.appendChild(overlay);
+        overlay.querySelectorAll('.cat-pick-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                overlay.remove();
+                onChoose(btn.dataset.cat);
+            });
+        });
+    }
+
+    scrollToInput() {
+        const inputRow = document.querySelector('.input-row');
+        if (inputRow) {
+            const top = inputRow.getBoundingClientRect().top + window.scrollY;
+            window.scrollTo({ top, behavior: 'smooth' });
+        }
     }
 
     // ── RENDER TABLE ────────────────────────────
