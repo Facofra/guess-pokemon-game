@@ -388,7 +388,7 @@ def build_pokedex():
                 "Grupo de huevo 1":   EGG_ES.get(egg_groups[0], capitalize(egg_groups[0])) if egg_groups else "?",
                 "Grupo de huevo 2":   EGG_ES.get(egg_groups[1], capitalize(egg_groups[1])) if len(egg_groups) > 1 else "Sin grupo 2",
                 "Etapa evolutiva":    stage,
-                "Legendario/Mítico":  legend,
+                "Legendario":  legend,
                 "Hábitat":            HABITAT_ES.get(habitat_key, capitalize(habitat_key)) if habitat_key else "Desconocido",
                 "Especie":            get_genus_es(species),
                 "Stat más alta":      get_highest_stat(poke),

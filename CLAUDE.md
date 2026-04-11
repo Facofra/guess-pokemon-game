@@ -69,7 +69,7 @@ All 17 categories stored per Pokemon in `pokedex.js`:
 | Forma del cuerpo | Spanish shape names |
 | Grupo de huevo 1 / 2 | Spanish egg group names, or "Sin grupo 2" |
 | Etapa evolutiva | "Básico", "Etapa 1", "Etapa 2" |
-| Legendario/Mítico | "Normal", "Legendario", "Mítico" |
+| Legendario | "Normal", "Legendario", "Mítico" |
 | Hábitat | Spanish habitat names, or "Desconocido" |
 | Especie | Spanish genus from Pokédex (e.g. "Pokémon Ratón") |
 | Stat más alta | "PS", "Ataque", "Defensa", "Ataque Esp.", "Defensa Esp.", "Velocidad" |

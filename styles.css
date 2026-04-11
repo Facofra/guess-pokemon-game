@@ -482,14 +482,28 @@ body {
     text-align: center;
     flex: 1;
 }
+.explorer-body {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+}
 .explorer-filters {
+    width: 240px;
+    flex-shrink: 0;
     background: var(--card);
     border: 1px solid var(--border);
     border-radius: 16px;
     padding: 8px;
-    margin-bottom: 12px;
     box-shadow: var(--shadow);
+    position: sticky;
+    top: 16px;
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
 }
+.explorer-filters::-webkit-scrollbar { width: 4px; }
+.explorer-filters::-webkit-scrollbar-track { background: transparent; }
+.explorer-filters::-webkit-scrollbar-thumb { background: var(--blue-dark); border-radius: 2px; }
+.explorer-main { flex: 1; min-width: 0; }
 .explorer-cat-group { border-radius: 8px; overflow: hidden; }
 .explorer-cat-header {
     display: flex;
@@ -1125,7 +1139,9 @@ th.secret-col.hidden-secret .pokemon-header img {
 
 /* ===== RESPONSIVE ===== */
 @media (max-width: 600px) {
-    .glossary-btn {
+    .explorer-filters { width: 160px; }
+
+.glossary-btn {
         font-size: 0;
         padding: 10px 12px;
     }

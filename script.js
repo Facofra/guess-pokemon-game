@@ -58,7 +58,7 @@ const CATEGORY_META = {
         desc: 'La posición en la cadena de evolución: Básico (no evoluciona de ningún otro), Etapa 1 (primera evolución), Etapa 2 (segunda evolución).',
         example: 'Bulbasaur → Básico · Ivysaur → Etapa 1 · Venusaur → Etapa 2'
     },
-    'Legendario/Mítico': {
+    'Legendario': {
         desc: 'Indica si el Pokémon es legendario, mítico o ninguno de los dos.',
         example: 'Mewtwo → Legendario · Mew → Mítico · Charizard → Normal'
     },
@@ -810,7 +810,7 @@ class PokemonGame {
                 ? `<span class="value-label bool-yes">✔</span>`
                 : `<span class="value-label bool-no">✘</span>`;
         }
-        if (cat === 'Legendario/Mítico' && val === 'Normal') {
+        if (cat === 'Legendario' && val === 'Normal') {
             return `<span class="value-label bool-no">✘</span>`;
         }
         return `<span class="value-label">${val}</span>`;
