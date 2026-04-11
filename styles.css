@@ -439,6 +439,207 @@ body {
     margin-top: 10px;
 }
 
+/* EXPLORER ENTRY (start screen) */
+.explorer-entry { margin-top: 20px; }
+.explorer-divider {
+    border-top: 1px solid var(--border);
+    margin-bottom: 16px;
+}
+.explorer-entry-btn {
+    display: block;
+    width: 100%;
+    max-width: 260px;
+    margin: 0 auto;
+    padding: 11px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 800;
+    background: var(--bg2);
+    color: var(--text-dim);
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.explorer-entry-btn:hover {
+    border-color: var(--blue-light);
+    color: var(--text);
+    transform: translateY(-1px);
+}
+
+/* EXPLORER SCREEN */
+.explorer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+.explorer-title {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.85rem;
+    color: var(--yellow);
+    text-align: center;
+    flex: 1;
+}
+.explorer-filters {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 8px;
+    margin-bottom: 12px;
+    box-shadow: var(--shadow);
+}
+.explorer-cat-group { border-radius: 8px; overflow: hidden; }
+.explorer-cat-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 10px 12px;
+    border-radius: 8px;
+    text-align: left;
+    transition: background 0.15s;
+}
+.explorer-cat-header:hover { background: var(--bg2); }
+.explorer-cat-label {
+    flex: 1;
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: var(--text);
+}
+.explorer-cat-count {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: var(--yellow);
+    background: rgba(245,197,24,0.12);
+    border-radius: 10px;
+    padding: 2px 8px;
+    display: none;
+}
+.explorer-cat-arrow {
+    font-size: 0.6rem;
+    color: var(--text-dim);
+    transition: transform 0.2s;
+}
+.explorer-cat-header.open .explorer-cat-arrow { transform: rotate(180deg); }
+.explorer-cat-values {
+    display: none;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 4px 12px 12px;
+}
+.explorer-cat-values.open { display: flex; }
+.explorer-cat-values .gen-btn { font-size: 0.55rem; padding: 6px 12px; }
+
+/* ACTIVE FILTER CHIPS */
+.explorer-active-filters {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow);
+}
+.explorer-active-label {
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 10px;
+}
+.explorer-chips-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.explorer-active-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--bg3);
+    border: 1px solid var(--blue);
+    border-radius: 20px;
+    padding: 4px 6px 4px 10px;
+    font-size: 0.78rem;
+}
+.chip-cat { color: var(--text-dim); }
+.chip-val { color: var(--text); font-weight: 700; }
+.chip-remove {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 0 2px;
+    line-height: 1;
+    transition: color 0.15s;
+}
+.chip-remove:hover { color: var(--red-light); }
+
+/* EXPLORER RESULTS */
+.explorer-results { margin-bottom: 40px; }
+.explorer-count {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.6rem;
+    color: var(--blue-light);
+    margin-bottom: 12px;
+    text-align: center;
+}
+.explorer-overflow {
+    text-align: center;
+    font-size: 0.82rem;
+    color: var(--yellow);
+    background: rgba(245,197,24,0.08);
+    border: 1px solid var(--yellow-dark);
+    border-radius: 8px;
+    padding: 10px 16px;
+    margin-bottom: 16px;
+}
+.explorer-empty {
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 0.9rem;
+    padding: 40px 20px;
+}
+.explorer-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+    gap: 10px;
+}
+.explorer-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 10px 6px 8px;
+    text-align: center;
+    cursor: default;
+    transition: border-color 0.15s, transform 0.15s;
+}
+.explorer-card:hover {
+    border-color: var(--blue-light);
+    transform: translateY(-2px);
+}
+.explorer-card img {
+    width: 56px;
+    height: 56px;
+    image-rendering: pixelated;
+    display: block;
+    margin: 0 auto 4px;
+}
+.explorer-card-name {
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.explorer-card-num {
+    font-size: 0.62rem;
+    color: var(--text-dim);
+}
+
 .start-game-btn {
     display: block;
     width: 100%;

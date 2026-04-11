@@ -87,6 +87,24 @@
                 <div id="genError" class="gen-error" style="display:none;">Seleccioná al menos una generación.</div>
             </div>
             <button id="startGameBtn" class="start-game-btn">¡Iniciar!</button>
+            <div class="explorer-entry">
+                <div class="explorer-divider"></div>
+                <button id="explorerBtn" class="explorer-entry-btn">🔍 Explorador Pokémon</button>
+            </div>
+        </div>
+
+        <!-- EXPLORADOR -->
+        <div id="explorerContainer" style="display:none;">
+            <div class="explorer-header">
+                <button id="explorerBackBtn" class="btn btn-stop">⬅ Volver</button>
+                <span class="explorer-title">Explorador</span>
+                <button id="explorerClearBtn" class="btn btn-restart">✕ Limpiar</button>
+            </div>
+            <div id="explorerFilters" class="explorer-filters"></div>
+            <div id="explorerActiveFilters" class="explorer-active-filters" style="display:none;"></div>
+            <div id="explorerResults" class="explorer-results">
+                <div class="explorer-empty">Seleccioná al menos un filtro para buscar Pokémon.</div>
+            </div>
         </div>
 
         <!-- CONTROLES DEL JUEGO -->

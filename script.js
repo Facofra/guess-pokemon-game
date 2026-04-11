@@ -281,6 +281,7 @@ class PokemonGame {
             console.error('Error loading pokedex.json', e);
         }
         this.initGlossary();
+        initExplorer();
         loading.style.display = 'none';
         diffSel.style.display = 'block';
         desc.style.display    = 'block';
@@ -926,6 +927,200 @@ class PokemonGame {
         banner.classList.add('show');
         setTimeout(() => banner.classList.remove('show'), 4000);
     }
+}
+
+// ──────────────────────────────────────────────
+//  EXPLORADOR
+// ──────────────────────────────────────────────
+const EXPLORER_MAX_RESULTS  = 100;
+const EXPLORER_EXCLUDED     = ['Especie'];
+
+// Orden personalizado para categorías con valores que no son alfabéticos
+const EXPLORER_VALUE_ORDER  = {
+    'Altura':             ['Bajo', 'Mediano', 'Alto'],
+    'Peso':               ['Liviano', 'Medio', 'Pesado'],
+    'Etapa evolutiva':    ['Básico', 'Etapa 1', 'Etapa 2'],
+    'Curva de experiencia': ['Rápida', 'Media', 'Media-Lenta', 'Lenta', 'Errática', 'Fluctuante'],
+};
+
+let explorerFilters = {}; // cat → Set<val>
+
+function initExplorer() {
+    document.getElementById('explorerBtn')    .addEventListener('click', openExplorer);
+    document.getElementById('explorerBackBtn').addEventListener('click', closeExplorer);
+    document.getElementById('explorerClearBtn').addEventListener('click', clearExplorerFilters);
+    renderExplorerFilters();
+}
+
+function openExplorer() {
+    document.getElementById('difficultySelection').style.display = 'none';
+    document.querySelector('.game-description').style.display    = 'none';
+    document.getElementById('explorerContainer').style.display   = 'block';
+}
+
+function closeExplorer() {
+    document.getElementById('explorerContainer').style.display   = 'none';
+    document.getElementById('difficultySelection').style.display = 'block';
+    document.querySelector('.game-description').style.display    = 'block';
+}
+
+function clearExplorerFilters() {
+    explorerFilters = {};
+    document.querySelectorAll('.explorer-filter-btn.active').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.explorer-cat-count').forEach(el => { el.style.display = 'none'; el.textContent = ''; });
+    renderActiveChips();
+    document.getElementById('explorerResults').innerHTML =
+        '<div class="explorer-empty">Seleccioná al menos un filtro para buscar Pokémon.</div>';
+}
+
+function sortExplorerValues(cat, values) {
+    const order = EXPLORER_VALUE_ORDER[cat];
+    if (order) {
+        return [...values].sort((a, b) => {
+            const ia = order.indexOf(a), ib = order.indexOf(b);
+            if (ia === -1 && ib === -1) return a.localeCompare(b);
+            if (ia === -1) return 1;
+            if (ib === -1) return -1;
+            return ia - ib;
+        });
+    }
+    return [...values].sort((a, b) => a.localeCompare(b));
+}
+
+function renderExplorerFilters() {
+    const container = document.getElementById('explorerFilters');
+    const cats = Object.keys(CATEGORY_META).filter(c => !EXPLORER_EXCLUDED.includes(c));
+
+    container.innerHTML = cats.map(cat => {
+        const rawVals = Object.keys(categoryIndex[cat] || {});
+        if (rawVals.length === 0) return '';
+        const vals = sortExplorerValues(cat, rawVals);
+        const btns = vals.map(val =>
+            `<button class="gen-btn explorer-filter-btn" data-cat="${cat}" data-val="${val}">${val}</button>`
+        ).join('');
+        return `<div class="explorer-cat-group">
+            <button class="explorer-cat-header" data-cat="${cat}">
+                <span class="explorer-cat-label">${cat}</span>
+                <span class="explorer-cat-count"></span>
+                <span class="explorer-cat-arrow">▼</span>
+            </button>
+            <div class="explorer-cat-values">${btns}</div>
+        </div>`;
+    }).join('');
+
+    // Toggle desplegable
+    container.querySelectorAll('.explorer-cat-header').forEach(header => {
+        header.addEventListener('click', () => {
+            const values = header.nextElementSibling;
+            const isOpen = values.classList.toggle('open');
+            header.classList.toggle('open', isOpen);
+        });
+    });
+
+    // Selección de valores
+    container.querySelectorAll('.explorer-filter-btn').forEach(btn => {
+        btn.addEventListener('click', e => {
+            e.stopPropagation(); // no propaga al header
+            const { cat, val } = btn.dataset;
+            if (!explorerFilters[cat]) explorerFilters[cat] = new Set();
+            if (explorerFilters[cat].has(val)) {
+                explorerFilters[cat].delete(val);
+                btn.classList.remove('active');
+            } else {
+                explorerFilters[cat].add(val);
+                btn.classList.add('active');
+            }
+            updateCatHeader(cat);
+            renderActiveChips();
+            updateExplorerResults();
+        });
+    });
+}
+
+function updateCatHeader(cat) {
+    const header = document.querySelector(`.explorer-cat-header[data-cat="${cat}"]`);
+    if (!header) return;
+    const count = explorerFilters[cat]?.size || 0;
+    const countEl = header.querySelector('.explorer-cat-count');
+    countEl.textContent = count > 0 ? count : '';
+    countEl.style.display = count > 0 ? 'inline' : 'none';
+}
+
+function renderActiveChips() {
+    const el = document.getElementById('explorerActiveFilters');
+    const filterEntries = Object.entries(explorerFilters).filter(([, vals]) => vals.size > 0);
+
+    if (filterEntries.length === 0) {
+        el.style.display = 'none';
+        return;
+    }
+
+    const chips = filterEntries.flatMap(([cat, vals]) =>
+        [...vals].map(val =>
+            `<span class="explorer-active-chip">
+                <span class="chip-cat">${cat}:</span>
+                <span class="chip-val">${val}</span>
+                <button class="chip-remove" data-cat="${cat}" data-val="${val}">×</button>
+            </span>`
+        )
+    ).join('');
+
+    el.style.display = 'block';
+    el.innerHTML = `<div class="explorer-active-label">Filtros activos</div>
+        <div class="explorer-chips-row">${chips}</div>`;
+
+    el.querySelectorAll('.chip-remove').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const { cat, val } = btn.dataset;
+            explorerFilters[cat]?.delete(val);
+            const filterBtn = document.querySelector(`.explorer-filter-btn[data-cat="${cat}"][data-val="${val}"]`);
+            filterBtn?.classList.remove('active');
+            updateCatHeader(cat);
+            renderActiveChips();
+            updateExplorerResults();
+        });
+    });
+}
+
+function updateExplorerResults() {
+    const filterEntries = Object.entries(explorerFilters).filter(([, vals]) => vals.size > 0);
+    const resultsEl = document.getElementById('explorerResults');
+
+    if (filterEntries.length === 0) {
+        resultsEl.innerHTML = '<div class="explorer-empty">Seleccioná al menos un filtro para buscar Pokémon.</div>';
+        return;
+    }
+
+    const matches = pokeList
+        .map(p => getPokemonData(p.id))
+        .filter(p => p && filterEntries.every(([cat, vals]) => {
+            const pVal = p.categories[cat];
+            const pArr = Array.isArray(pVal) ? pVal : [pVal];
+            return pArr.some(v => vals.has(v));
+        }));
+
+    if (matches.length === 0) {
+        resultsEl.innerHTML = '<div class="explorer-empty">Ningún Pokémon cumple los filtros seleccionados.</div>';
+        return;
+    }
+
+    const showing   = matches.slice(0, EXPLORER_MAX_RESULTS);
+    const overflowMsg = matches.length > EXPLORER_MAX_RESULTS
+        ? `<div class="explorer-overflow">Mostrando ${EXPLORER_MAX_RESULTS} de ${matches.length} resultados. Refiná los filtros para ver menos.</div>`
+        : '';
+
+    const cards = showing.map(p => `
+        <div class="explorer-card">
+            <img src="${p.sprite}" alt="${capitalize(p.name)}" loading="lazy">
+            <div class="explorer-card-name">${capitalize(p.name)}</div>
+            <div class="explorer-card-num">#${String(p.id).padStart(3, '0')}</div>
+        </div>`).join('');
+
+    const plural = matches.length === 1 ? 'Pokémon encontrado' : 'Pokémon encontrados';
+    resultsEl.innerHTML = `
+        <div class="explorer-count">${matches.length} ${plural}</div>
+        ${overflowMsg}
+        <div class="explorer-grid">${cards}</div>`;
 }
 
 // ──────────────────────────────────────────────
