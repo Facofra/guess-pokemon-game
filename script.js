@@ -1110,7 +1110,7 @@ function updateExplorerResults() {
         : '';
 
     const cards = showing.map(p => `
-        <div class="explorer-card">
+        <div class="explorer-card" data-id="${p.id}">
             <img src="${p.sprite}" alt="${capitalize(p.name)}" loading="lazy">
             <div class="explorer-card-name">${capitalize(p.name)}</div>
             <div class="explorer-card-num">#${String(p.id).padStart(3, '0')}</div>
@@ -1121,6 +1121,77 @@ function updateExplorerResults() {
         <div class="explorer-count">${matches.length} ${plural}</div>
         ${overflowMsg}
         <div class="explorer-grid">${cards}</div>`;
+
+    resultsEl.querySelectorAll('.explorer-card').forEach(card => {
+        card.addEventListener('click', () => {
+            const pData = getPokemonData(Number(card.dataset.id));
+            if (pData) showPokemonDetail(pData);
+        });
+    });
+}
+
+function showPokemonDetail(pokemon) {
+    const overlay = document.createElement('div');
+    overlay.className = 'category-picker-overlay';
+
+    const allCats = Object.keys(CATEGORY_META);
+    const rows = allCats.map(cat => {
+        const val = pokemon.categories[cat];
+        if (val === undefined || val === null) return '';
+        // Use a minimal inline renderer (no class methods available here)
+        let rendered;
+        if (Array.isArray(val)) {
+            rendered = val.map(v => renderDetailValue(v, cat)).join('<span class="value-sep"> / </span>');
+        } else {
+            rendered = renderDetailValue(val, cat);
+        }
+        return `<tr>
+            <td class="detail-cat-name">${cat}</td>
+            <td class="detail-cat-val">${rendered}</td>
+        </tr>`;
+    }).join('');
+
+    overlay.innerHTML = `
+        <div class="pokemon-detail-popup">
+            <div class="detail-header">
+                <img src="${pokemon.sprite}" alt="${capitalize(pokemon.name)}" class="detail-sprite">
+                <div class="detail-title">
+                    <div class="detail-name">${capitalize(pokemon.name)}</div>
+                    <div class="detail-num">#${String(pokemon.id).padStart(3, '0')}</div>
+                </div>
+                <button class="detail-close">×</button>
+            </div>
+            <div class="detail-scroll">
+                <table class="detail-table">${rows}</table>
+            </div>
+        </div>`;
+
+    document.body.appendChild(overlay);
+
+    const close = () => overlay.remove();
+    overlay.querySelector('.detail-close').addEventListener('click', close);
+    overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+}
+
+function renderDetailValue(val, cat) {
+    if (cat === 'Tipo 1' || cat === 'Tipo 2') {
+        const typeKey = Object.entries(TYPE_ES).find(([,v]) => v === val)?.[0];
+        if (typeKey) return `<span class="type-badge type-${typeKey}">${val}</span>`;
+    }
+    if (cat === 'Generación') return `<span class="gen-badge">${val}</span>`;
+    if (cat === 'Color') {
+        const colorKey = Object.entries(COLOR_ES).find(([,v]) => v === val)?.[0];
+        if (colorKey) return `<span class="value-label" style="color:var(--color-${colorKey})">${val}</span>`;
+    }
+    if (['Forma alternativa', 'Starter', 'Bebé', 'Fósil', 'Mega'].includes(cat)) {
+        return val === 'Sí'
+            ? `<span class="value-label bool-yes">✔</span>`
+            : `<span class="value-label bool-no">✘</span>`;
+    }
+    if (cat === 'Legendario' && val === 'Normal') {
+        return `<span class="value-label bool-no">✘</span>`;
+    }
+    return `<span class="value-label">${val}</span>`;
 }
 
 // ──────────────────────────────────────────────
